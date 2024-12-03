@@ -1,0 +1,30 @@
+
+\section{The Impact of Time-Aggregation on Autoregressive Parameter in AR(1)}
+For aggregation of $n = 2$ periods, we can write: 
+\begin{align}
+    \text{plim} \; \hat{A}^{(2)} &= \frac{\text{plim} \; (y_{-2} + y_{-3})'(y + y_{-1})}{\text{plim} \; (y + y_{-1})'(y + y_{-1})} \\
+        &= \frac{\text{plim} \; (y'y_{-2} + y_{-1}'y_{-2} + y'y_{-3} + y_{-1}'y_{-3})}{\text{plim} \; (y^{2} + 2y'y_{-1} + y^{2}_{-1})}\\
+        &= \frac{a + 2 a^{2} + a^{3}}{2 + 2a}\\
+        &= \frac{1 + 2a + a^{2}}{2 + 2a}a
+\end{align}
+When $-1 < a < 1$, the numerator is smaller than the denominator, and $\hat{A}^{(2)} < a$
+
+For aggregation of $n = 3$ periods: 
+\begin{align}
+    \text{plim} \; \hat{A}^{(3)} &= \frac{\text{plim} (y_{-3} + y_{-4} + y_{-5})'(y + y_{-1} + y_{-2})}{\text{plim} (y + y_{-1} + y_{-2})'(y + y_{-1} + y_{-2})}\\
+        &= \frac{a + 2a^{2} + 3a^{3} + 2a^{4} + a^{5}}{3 + 4a + 2a^{2}}\\
+        &= \frac{(3a^{3}) + (2a^{2} + 2a^{4}) + (a + a^{5})}{3a^{3} + 4a^{4} + 2a^{5}} a^{3}
+\end{align}
+\textcite{hickman_effects_1972} use this grouping of terms to show that $\hat{A}^{(3)} > a^{3}$. 
+
+For aggregation of $n = 4$ periods: 
+\begin{align}
+    \text{plim} \; \hat{A}^{(4)} &= \frac{\text{plim} (y_{-4} + y_{-5} + y_{-6} + y_{-7})'(y + y_{-1} + y_{-2} + y_{-3})}{\text{plim} (y + y_{-1} + y_{-2} + y_{-3})'(y + y_{-1} + y_{-2} + y_{-3})}\\
+        &= \frac{a + 2a^{2} + 3a^{3} + 4a^{4} + 3a^{5} + 2a^{6} + a^{7}}{4 + 6a + 4a^{2} + 2a^{3}}
+    \end{align}
+        
+For aggregation of $n = 6$ periods: 
+\begin{align}
+    \text{plim} \; \hat{A}^{(6)} &= \frac{\text{plim} (y_{-6} + y_{-7} + y_{-8} + y_{-9} + y_{-10} + y_{-11})'(y + y_{-1} + y_{-2} + y_{-3} + y_{-4} + y_{-5})}{\text{plim} (y + y_{-1} + y_{-2} + y_{-3} + y_{-4} + y_{-5})'(y + y_{-1} + y_{-2} + y_{-3} + y_{-4} + y_{-5})}\\
+        &= \frac{a + 2a^{2} + 3a^{3} + 4a^{4} + 5a^{5} + 6a^{6} + 5a^{7} + 4a^{8} + 3a^{9} + 2a^{10} + a^{11}}{6 + 10a + 8a^{2} + 6a^{3} + 4a^{4} + 2a^{5}}
+\end{align}
