@@ -36,7 +36,7 @@
 % TITLE PAGE  
 %-----------
 \title{Time Aggregation and Missing Time Frames in Causal Research With Panel Data}
-\shorttitle{}
+\shorttitle{Time Aggregation in Causal Research}
 
 \authorsnames[1, 2, 1]{Jeroen D. Mulder, Manuel C. Voelkle, and Ellen L. Hamaker}
 \authorsaffiliations{{Universiteit Utrecht, Utrecht, the Netherlands}, {Humboldt-Universität, Berlin, Germany}}
@@ -60,33 +60,34 @@
 %-----------
 
 \section{1. Introduction}
-The analysis of panel data, in which the same people are repeatedly measured on the same variables, is wide-spread in psychology and related disciplines to investigate how variables causally affect each other over time. Such a causal interpretation is sometimes explicit, but is typically left implicit through the of specific language or suggestions for interventions based on analysis results \parencite{asendorpf_modeling_2021, grosz_taboo_2020, hamaker_description_2020}. To identify such causal effects from data, it is critical that the research question and the research design are aligned. In this article, we specifically focus on misalignment of the temporal characteristics of a causal process under study and the timescale of measurements, and the consequences hereof for the identification and estimation of a causal effect from observed longitudinal data \parencite{hamaker_within-between_2023, voelkle_role_2018, mitchell_building_2001, collins_analysis_2006}. For example, if a causal process is characterized by within-day or day-to-day dynamics, then measurements should be taken at approximately the same frequency for the measurements to be informative about the process of interest. If, in contrast, the temporal design of a study is misaligned with the temporal dynamics of a causal process (e.g., the measurement frequency concerns months or years), it is possible that valid causal effects cannot be estimated from data, even if we had an infinite amount of measurements \parencite{collins_effect_2002}.
+The analysis of panel data, in which the same people are repeatedly measured on the same variables, is wide-spread in psychology and related disciplines to investigate causal relationships between variables. These causal interpretations are sometimes explicit, but are typically left implicit through the use of specific language or suggestions for interventions based on analysis results \parencite{asendorpf_modeling_2021, grosz_taboo_2020, hamaker_description_2020}. To identify causal effects from data, it is critical that the research question and the research design are aligned in a temporal sense. For example, a typical research question in psychology may be about the effect of social media use on stress levels, or, phrased alternatively, understanding the causal mechanism underlying the relationship between social media use and stress. These kinds of questions are commonly answered with panel data that are characterized by repeated measures at monthly or yearly intervals. However, from a methodological perspective one may wonder if a research question about an ``underlying causal mechanism'' is a sensible question to ask when analyzing panel data and when the causal process between social media use and stress is believed to operate at a much finer grained time-scale \parencite[e.g., within-day or day-to-day;][]{collins_effect_2002}. This is also a concern that has been discussed in prior methodological studies, for example, in literature on continuous-time modeling \parencites[cf.][]{voelkle_sem_2012, voelkle_role_2018, batra_consequences_2023}, theory formation \parencite{mitchell_building_2001}, and study design \parencites[cf.][]{collins_effect_2002, collins_analysis_2006, hamaker_within-between_2023}. In this article we expand the discussion of this concern, focusing on misalignment of the temporal characteristics of a causal mechanism of interest and the timescale of measurements, and the consequences thereof for the identification and estimation of a causal effect from observed longitudinal data.
 
-This article centers on two common measurement-related features in panel data that can lead to temporal misalignment, namely \textit{time-aggregation} of variables and \textit{low process coverage} due to systematic sampling. Time-aggregation refers to measurements that pertain to an average level of a construct across a particular time-period, rather than the level of the construct at the moment of measurement \parencite{petkovic_aggregation_2009}. For example, in psychological research, it is relatively common to ask participants of panel studies to provide aggregate scores themselves, by using questions that refer to participants' average levels of anxiety or self-esteem across \textit{the past week} or \textit{the past month}, rather than their levels of anxiety or self-esteem \textit{right now}. The concept of low process coverage refers to the situation where the combination of systematic sampling over time (i.e., taking measurements at regular intervals) and time-aggregation of measurements only captures a small part of a continuous process. For example, \textcite{hamaker_within-between_2023} describes how the combination of biannual measurement occasions with measurements referring to the past week, implies that less then 1\% of an ongoing process is actually covered by measurements. Both of these features can negatively impact a researcher's ability to identify and estimate particular causal effects from data. Therefore, the current paper considers this impact in the context of causal inference using panel data, and demonstrates it using multiple simulation scenarios. 
+We concentrate on two common measurement-related features in panel data that can lead to temporal misalignment, namely \textit{time-aggregation} of variables and \textit{low process coverage} due to systematic (under)sampling. Time-aggregation refers to measurements that pertain to an average level of a construct across a particular time-period, rather than the level of the construct at the moment of measurement \parencite{petkovic_aggregation_2009}. For example, in psychological research, it is relatively common to ask participants of panel studies to provide aggregate scores for themselves, by using questions that refer to participants' average levels of anxiety or self-esteem across \textit{the past week} or \textit{the past month}, rather than their levels of anxiety or self-esteem \textit{right now}. Furthermore, the concept of low process coverage refers to the situation where the combination of systematic (under)sampling over time (i.e., taking measurements at regular intervals that are too long in relation to the timescale at which the process operates) and time-aggregation of measurements only captures a small part of a continuous process. For example, \textcite{hamaker_within-between_2023} describes how the combination of biannual measurement occasions with measurements referring to the past week, implies that less then 1\% of an ongoing process is actually covered by measurements. Both of these features can negatively impact a researcher's ability to identify and estimate from the data effects of causal mechanisms at finer time scales. The current paper studies this impact in the context of causal inference using panel data, and demonstrates it in multiple simulation scenarios. 
 
-This paper is organized as follows. To aid explanation of time-aggregation and low process coverage, we first introduce these concepts in the context of single-subject (i.e., $N = 1$) research with many repeated measures. Section 2 provides an overview of early analytical work on the impact of time-aggregation of variables on the dynamic characteristics of dynamic models for $N = 1$ data. It also introduces the impact of low process coverage from both a continuous-time modeling and causal inference perspective. In Section 3, we present a simulation study to extend previous analytical work. These simulations focus on (1) the combined influence of time-aggregation and low process coverage for $N = 1$ data; (2) time-aggregation and low process coverage in $N = 1$ data in the presence of a time-varying confounder; and (3) time aggregation and low process coverage for \textit{panel data} and in the presence of a time-varying confounder. Section 4 presents simulation results. Section 5 discusses the implications of the results for current causal research using panel data, and suggests future directions for addressing some of the concerns raised. Throughout, we use a running example that is motivated by panel research on the impact of social media use on anxiety in early-adolescents. Specifically, we take inspiration from the Longitudinal Internet studies for the Social Sciences (LISS) panel, which consists of a random sample of Dutch households representative of the Dutch-speaking population in the Netherlands, and which contains annual measurements covering a large variety of domains \parencite{das_true_2018}. In the LISS panel, anxiety was measured with the statement ``This past month... I felt very anxious.'', with participants having to indicate which answer best described them on a scale from ``1 = never'' to ``6 = continuously''. Social media usage was measured by asking participants how many hours per week \textit{on average} they spend on social media. 
-
+This paper is organized as follows. To aid explanation of time-aggregation and low process coverage, we first introduce these concepts in the context of single-subject (i.e., $N = 1$) research with many repeated measures. Section 2 provides an overview of early analytical work on the impact of time-aggregation of variables on the performance of dynamic models for $N = 1$ data. It also introduces the impact of low process coverage from a causal inference perspective. In Section 3, we present a simulation study to extend previous analytical work. These simulations focus on (a) the combined influence of time-aggregation and low process coverage for $N = 1$ data; (b) time-aggregation and low process coverage in $N = 1$ data in the presence of a time-varying confounder; and (c) time aggregation and low process coverage for \textit{panel data} and in the presence of a time-varying confounder. Section 4 discusses the implications of the results for current causal research using panel data, and suggests future directions for addressing some of the concerns raised. Throughout, we use a running example that is motivated by panel research concerning the impact of social media use on anxiety in early-adolescents. Specifically, we take inspiration from the Longitudinal Internet studies for the Social Sciences (LISS) panel, which consists of a random sample of Dutch households representative of the Dutch-speaking population in the Netherlands, and which contains annual measurements covering a large variety of domains \parencite{das_true_2018}. In the LISS panel, anxiety was measured with the statement ``This past month... I felt very anxious.'', with participants having to indicate which answer best described them on a scale from ``1 = never'' to ``6 = continuously''. Social media usage was measured by asking participants how many hours per week \textit{on average} they spend on social media, but without providing an explicit time frame (i.e., whether the average refers to the past week, past month, past year, a randomly chosen week in the past year, etc.). 
 
 \section{2. Background}
-Much of the early work on the impact of time-aggregation of variables and systematic sampling comes from the econometric literature, and was driven by the time-aggregation of economic variables before analyses. For instance, the aggregation of \textit{momentary} stock prices to \textit{day-averages}, or the transformation of \textit{monthly} gross domestic product figures to \textit{quarterly} aggregates \parencite{mundlak_aggregation_1961, telser_discrete_1967}. This work focuses specifically on dynamic models for time series data, such as the lag-1 autoregressive model, the AR(1), and its extension to a time-varying covariate $X$, the ARX(1). Because these dynamic models form the backbone of many of the current statistical models used to analyze panel data in psychology \parencite[e.g., the class of cross-lagged panel models;][]{usami_unified_2019}, we introduce these dynamic models first in Section 2.1. In Section 2.2, we discuss the implications of time-aggregation for the AR(1) model. Finally, Section 2.3 introduces the issues of low process coverage from both a continuous-time modeling and a causal inference perspective. 
+Much of the early work on the impact of time-aggregation of variables and systematic (under)sampling comes from the econometric literature, and was driven by the time-aggregation of economic variables before analyses. For instance, the aggregation of \textit{momentary} stock prices to \textit{day-averages}, or the transformation of \textit{monthly} gross domestic product figures to \textit{quarterly} aggregates \parencite{mundlak_aggregation_1961, telser_discrete_1967}. This work focuses specifically on dynamic models for time series data, such as the lag-1 autoregressive model, the AR(1), and its extension with a time-varying covariate $X$, the ARX(1). Because early analytical work on time-aggregation concerns time series data, and because dynamic models form the backbone of many of the current statistical models used to analyze panel data in psychology \parencite[e.g., the class of cross-lagged panel models;][]{usami_unified_2019}, we introduce these dynamic models first in Section 2.1. In Section 2.2, we discuss the implications of time-aggregation for the AR(1) model. Section 2.3 introduces the issues of low process coverage from a causal inference perspective. 
 
 \subsection{2.1 Dynamic Models}
 Let the continuous variable $t$ represent time, and the variable $k$ denote a measurement occasion at a particular point in time. The AR(1) model describes the relationship between a variable at occasion $k$, $Y_{k}$, and the values of that same variable at the previous occasion, $Y_{k - 1}$. It can be expressed as
 \begin{equation} \label{eq:AR1}
-    Y_{k} = \phi Y_{k - 1} + \epsilon_{k},
+    Y_{k} = \phi Y_{k - 1} + \epsilon_{Y,k}. 
 \end{equation}
-where $\phi$ represents the autoregressive coefficient of the regression of $Y_{k}$ on $Y_{k - 1}$, and $\epsilon_{k}$ is a residual at occasion $k$ that is typically assumed to be mean-zero normally distributed with variance $\sigma_{Y}^{2}$. To investigate relationships between variables, the AR(1) model can be extended with an exogenous time-varying predictor $X$. Given that causes need time to exert an effect, typically a lagged version of $X$ is added as a predictor to the model, resulting in 
+$\phi$ represents the lag-1 autoregressive coefficient of the regression of $Y_{k}$ on $Y_{k - 1}$. Since we only consider AR(1) processes in the present manuscript, we refrain from adding the index $_{k - 1}$ to $\phi$ to simplify the notation. $\epsilon_{Y,k}$ is a residual for the outcome $Y$ at occasion $k$ that is typically assumed to be mean-zero normally distributed with variance $\sigma_{\epsilon_{Y}}^{2}$. Equation~\ref{eq:AR1} does not include an intercept term, hence we assume the mean of $Y_{k}$ to be zero. 
+
+To investigate relationships between variables, the AR(1) model can be extended with an exogenous time-varying predictor $X$. Given that causes need time to exert an effect, often a lagged version of $X$ is added as a predictor to the model, resulting in 
 \begin{equation}
-    Y_{k} = \phi Y_{k - 1} + \beta_{k - 1} X_{k - 1} + \epsilon_{k}. 
+    Y_{k} = \phi Y_{k - 1} + \beta_{k - 1} X_{k - 1} + \epsilon_{Y,k}. 
 \end{equation}
 Here, $\beta_{k - 1}$ represents the lag-1 effect from $X$ to $Y$. However, it has been argued that when the time interval is large and the causal effect of $X$ under study is relatively rapid, that lagged effects of $X$ should not be added \parencite{mundlak_aggregation_1961}. Instead, lag-0 effects could be added to the model, resulting in the ARX(1) model. It is given by
 \begin{equation} \label{eq:ARX1}
-    Y_{k} = \phi Y_{k - 1} + \beta_{k} X_{k} + \epsilon_{k}, 
+    Y_{k} = \phi Y_{k - 1} + \beta_{k} X_{k} + \epsilon_{Y,k}, 
 \end{equation}
-where $\beta_{k}$ now represents the lag-0 (rapid) effect of the time-dependent predictor on the outcome. Similar discussions about modeling instantaneous effects have taken place in the context of panel data analysis \parencite{greenberg_panel_1979, greenberg_equilibrium_1982}, and more recently by \textcite{muthen_can_2024} in the context of cross-lagged panel modeling using structural equation modeling (SEM). 
+where $\beta_{k}$ now represents the lag-0 (rapid) effect of the time-dependent predictor on the outcome. Similar discussions about modeling instantaneous effects have taken place in the context of panel data analysis \parencite{greenberg_panel_1979, greenberg_equilibrium_1982}, and more recently by \textcite{muthen_can_2024} in the context of cross-lagged panel modeling in the structural equation modeling (SEM) framework. 
 
 \subsection{2.2 Time-Aggregation}
-There exist various forms of time-aggregation, also referred to as \textit{aggregation schemes}. In this paper, we discuss time-aggregation that concerns taking the mean across a particular period of time, as this is a relatively common aggregation-scheme in psychological measurements. To this end, we introduce some additional notation below. Let $m$ be the number of time periods that we aggregate over, and suppose that levels of anxiety (i.e., the anxiety-process) vary from day to day. Further suppose for simplicity's sake that each month consists of four weeks, and thus 28 days. As mentioned in the introduction, anxiety is measured in the LISS panel data with the question ``This past month... I felt very anxious.'', implying that participants are expected to average their daily anxiety levels over the past $m = 28$ periods (days). To distinguish between measurements of the disaggregated process ($m = 1$) and aggregated measurements ($m > 1$), we add the subscript $(m)$ to variable names, such that $Y_{k_{(m)}}$ represents the outcome $Y$ at measurement $k$ aggregated over $m$ occasions: Disaggregated measurements are then denoted by $Y_{k_{(1)}}$ and 28-day-aggregated measurements by $Y_{k_{(28)}}$. Furthermore, we focus on aggregate measurements that are ``proper'', that is, aggregate measurements are measured back-to-back and do not overlap. For example, with anxiety measured as 28-day-averages, we would only include the aggregates of day 1 to day 28, day 29 to day 56, day 57 to day 84, and so on in our analysis. Hence, intermediate overlapping frames, such as aggregates from day 1 to day 28, day 2 to day 29, day 3 to day 30, are not included. Figure~\ref{fig:notation} illustrates this notation for aggregation over $m = 2, 3$ periods. 
+There exist various forms of time-aggregation, also referred to as \textit{aggregation schemes}. In this paper, we discuss time-aggregation that concerns taking the mean across a particular period of time, as this is a relatively common aggregation-scheme in psychological measurements. To this end, we introduce some additional notation below. Let $m$ be the number of time periods that we aggregate over, and suppose that in our running example the anxiety-process operates on a day-to-day basis. Further suppose for simplicity's sake that each month consists of four weeks, and thus 28 days. As mentioned in the introduction, anxiety is measured in the LISS panel data with the question ``This past month... I felt very anxious.'', implying that participants are expected to average their daily anxiety levels over the past $m = 28$ periods (days). To distinguish between measurements of the disaggregated process ($m = 1$) and aggregated measurements ($m > 1$), we add the subscript $_{(m)}$ to variable names, such that $Y_{k_{(m)}}$ represents the outcome $Y$ at measurement $k$ aggregated over $m$ occasions: Disaggregated measurements are then denoted by $Y_{k_{(1)}}$ and 28-day-aggregated measurements by $Y_{k_{(28)}}$. Furthermore, we focus on aggregate measurements that are ``proper'', that is, aggregate measurements are measured back-to-back and do not overlap. For example, with anxiety measured as 28-day-averages, we would only include the aggregates of day 1 to day 28, day 29 to day 56, day 57 to day 84, and so on in our analysis, which are then denoted as $Y_{1_{(28)}}$, $Y_{2_{(28)}}$, and $Y_{3_{(28)}}$, respectively. Intermediate overlapping frames, such as aggregates from day 1 to day 28, day 2 to day 29, day 3 to day 30, are not considered. Figure~\ref{fig:notation} illustrates this notation for aggregation over $m = 2, 3$ periods. 
 
 \begin{figure}
     \centering
@@ -116,14 +117,14 @@ There exist various forms of time-aggregation, also referred to as \textit{aggre
         \node[manifest, right of = y61, xshift = 1cm] (y71) {$Y_{7_{(1)}}$};
         \node[manifest, right of = y71, xshift = 1cm] (y81) {$Y_{8_{(1)}}$}; 
                 
-        \node[manifest, above of = y11, yshift = 1cm, xshift = 1cm, minimum width=28mm] (y12) {$Y_{1_{(2)}}$};
-        \node[manifest, above of = y31, yshift = 1cm, xshift = 1cm, minimum width = 28mm] (y22) {$Y_{2_{(2)}}$};
-        \node[manifest, above of = y51, yshift = 1cm, xshift = 1cm, minimum width = 28mm] (y32) {$Y_{3_{(2)}}$};
-        \node[manifest, above of = y71, yshift = 1cm, xshift = 1cm, minimum width = 28mm] (y42) {$Y_{4_{(2)}}$};
+        \node[manifest, below of = y11, yshift = -1cm, xshift = 1cm, minimum width=28mm] (y12) {$Y_{1_{(2)}}$};
+        \node[manifest, below of = y31, yshift = -1cm, xshift = 1cm, minimum width = 28mm] (y22) {$Y_{2_{(2)}}$};
+        \node[manifest, below of = y51, yshift = -1cm, xshift = 1cm, minimum width = 28mm] (y32) {$Y_{3_{(2)}}$};
+        \node[manifest, below of = y71, yshift = -1cm, xshift = 1cm, minimum width = 28mm] (y42) {$Y_{4_{(2)}}$};
     
-        \node[manifest, above of = y21, yshift = 3cm, minimum width = 48mm] (y13) {$Y_{1_{(3)}}$};
-        \node[manifest, above of = y51, yshift = 3cm, minimum width = 48mm] (y23) {$Y_{2_{(3)}}$};
-        \node[openbox, above of = y71, yshift = 3cm, xshift = 1cm] (y33) {$Y_{3_{(3)}}$}; % modified style for y33
+        \node[manifest, below of = y21, yshift = -3cm, minimum width = 48mm] (y13) {$Y_{1_{(3)}}$};
+        \node[manifest, below of = y51, yshift = -3cm, minimum width = 48mm] (y23) {$Y_{2_{(3)}}$};
+        \node[openbox, below of = y71, yshift = -3cm, xshift = 1cm] (y33) {$Y_{3_{(3)}}$};
     
         \node[left of = y11, xshift = -0.5cm] {$m = 1$};
         \node[left of = y12, xshift = -1.5cm] {$m = 2$};
@@ -146,32 +147,34 @@ There exist various forms of time-aggregation, also referred to as \textit{aggre
         \draw[paths] (y23) -- (y33) node[midway, above] {$\phi_{(3)}$};
                 
         % Time line                
-        \node (timeline-start) [below of = y11, yshift = -.5cm, xshift = -0.5cm] {};
-        \node (timeline-end) [below of = y81, yshift = -.5cm, xshift = 1cm] {};
+        \node (timeline-start) [below of = y13, xshift = -2.5cm] {};
+        \node (timeline-end) [below of = y33, xshift = 2cm] {};
          
         \draw[->, thick] (timeline-start) -- (timeline-end) node[midway, above] {};
         \node at (timeline-end) [right] {$t$};  % Add letter t to the right of the timeline
     
     \end{tikzpicture}
     \vspace{1cm}
-    \caption{A visualization of a disaggregated ($m = 1$) lag-1 autoregressive processes over time $t$, and $m = 2$ and $m = 3$ aggregated measurements thereof. $Y_{k_{(m)}}$ represents an outcome $Y$ at measurement occasion $k$ when mean-aggregating over $m$ periods. For example, $Y_{3_{(2)}}$ is the third measurement when aggregating over $m = 2$ periods, and is computed by taking the mean of $Y_{5_{(1)}}$ and $Y_{6_{(1)}}$ from the disaggregated process. Each aggregation scheme is characterized by its own set of parameters, which we distinguish between by concatenating the subscript ${(m)}$ to the parameter. That is, the disaggregated process has an autoregressive effect $\phi_{(1)}$, whereas the autoregressive parameters of the $m = 2$ and $m = 3$ aggregated measurements are $\phi_{(2)}$ and $\phi_{(3)}$, respectively. The dotted box of $Y_{3_{(3)}}$ signals that this aggregate also includes $Y_{9_{(1)}}$, not displayed in the Figure.}
+    \caption{A visualization of a disaggregated ($m = 1$) lag-1 autoregressive processes over time $t$, and $m = 2$ and $m = 3$ aggregated measurements thereof. $Y_{k_{(m)}}$ represents an outcome $Y$ at measurement occasion $k$ when mean-aggregating over $m$ periods. For example, $Y_{3_{(2)}}$ is the third measurement when aggregating over $m = 2$ periods, and is computed by taking the mean of $Y_{5_{(1)}}$ and $Y_{6_{(1)}}$ from the disaggregated process. Each aggregation scheme is characterized by its own set of parameters, which we distinguish by concatenating the subscript ${(m)}$ to the parameter. That is, the disaggregated process has an autoregressive effect $\phi_{(1)}$, whereas the autoregressive parameters of the $m = 2$ and $m = 3$ aggregated measurements are $\phi_{(2)}$ and $\phi_{(3)}$, respectively. The dotted box of $Y_{3_{(3)}}$ signals that this aggregate also includes $Y_{9_{(1)}}$, not displayed in the Figure.}
     \label{fig:notation}
 \end{figure}
 
-For this aggregation scheme, it is interesting to compare the parameter coefficients of dynamic models based on aggregated data to the data generating mechanism (i.e., the model that generated the disaggregated data). To distinguishing between the parameters of the data generating mechanism ($m = 1$) and those from models based on aggregated data ($m > 2$), we therefore concatenate the subscript ${(m)}$ to the parameters of dynamic models. \textcite{amemiya_effect_1972, hickman_effects_1972} study consequences of aggregation for the AR(1) model, comparing the autoregressive parameter $\phi_{(1)}$ in the disaggregated model in Equation~\ref{eq:AR1}, to the autoregressive parameter from the aggregated model given by
-\begin{equation} \label{eq:AR1-aggregated}
-    Y_{k_{(m)}} = \phi_{(m)} Y_{k_{(m)} - 1} + e_{k_{(m)}},
-\end{equation} 
-with $\phi_{(m)}$ representing the autoregressive parameter of an aggregated process. In earlier research, \textcite{ironmonger_note_1959, nerlove_estimation_1959, telser_discrete_1967} study the dynamics of an aggregated process by comparing the aggregated autoregressive parameter $\phi_{(m)}$ to $\phi_{(1)}^{m}$. However, \textcite{amemiya_effect_1972} explain that $\phi_{(m)}$ and $\phi_{(1)}^{m}$ are generally not equivalent because the aggregation introduces a first-order moving average error structure at the disaggregated level. The problem is that by aggregating data, we lose information at the disaggregated level that is needed to model the first-order moving average structure at the disaggregate level that exists in the data. For this reason, \textcite{amemiya_effect_1972} argue that the dynamics of an aggregated process are qualitatively different dynamics than those from the disaggregated process, even though the aggregated measurements are created from the disaggregated process. 
+For this aggregation scheme, it is interesting to compare the parameter coefficients of dynamic models based on aggregated data to parameter coefficients of the model that generated the disaggregated data, that is, the \textit{data generating mechanism}. To distinguishing between the parameters of a data generating mechanism (where $m = 1$) and those from estimation models based on aggregated data ($m > 2$), we concatenate the subscript ${(m)}$ to parameter coefficients. One potentially interesting hypothesis is that lagged parameters for various levels of $m$ are related to each other similar to how lagged parameters across different time intervals are related to each other. For example, for a disaggregated AR(1) model, it is well-known that a lag-2 autoregressive effect (i.e., skipping every other day of measurement such that the autoregressive effect refers to an effect across two periods) can be expressed as the lag-1 autoregresssive effect to the power two, that is $\phi_{(1)}^{2}$. More generally, in a disaggregated AR(1) model, the lag-$d$ autoregressive effect is expressed as $\phi_{(1)}^{d}$. 
 
-To better understand the relationship between $\phi_{(m)}$ (for $m > 1$) and $\phi_{(1)}$, \textcite{hickman_effects_1972} express the OLS-estimate of $\phi_{(m)}$ as a function $\phi_{(1)}$. They show that for a covariance stationary process (i.e., when $|\phi_{(1)}| < 1$ and with constant variance and covariance over time), $\phi_{(m)}$ is larger than $\phi_{(1)}^{m}$. \textcite{hickman_effects_1972} also generalize their analysis to more complicated models such as the ARX(1), comparing both the disaggregated autoregressive parameter $\phi_{(1)}$ and time-dependent effect of $X$, $\beta_{(1)}$ with their aggregated counterparts $\phi_{(m)}$ and $\beta_{(m)}$. While they are able to compute the probability limit of the coefficients of the aggregated ARX(1) model as a function of the disaggregated process, they note that ``This relationship is so complicated that no general tendencies can be observed until simplifying approximations are made'' \parencite[][p. 689]{amemiya_effect_1972}, and resort to simulations. We similarly rely on simulations to study the impact of time-aggregation and low process coverage in extended scenarios. 
+\textcite{ironmonger_note_1959, nerlove_estimation_1959, telser_discrete_1967} investigate if a similar relationship exists between parameters from AR(1) models based on data with different levels of aggregation. They compare the autoregressive parameter $\phi_{(1)}$ from the data generating AR(1) model, to the autoregressive parameter from an AR(1) model that is fitted on the aggregated data. We express the AR(1) model for the aggregated data as
+\begin{equation} \label{eq:AR1-aggregated}
+    Y_{k_{(m)}} = \phi_{(m)} Y_{k_{(m)} - 1} + \epsilon_{Y,k_{(m)}},
+\end{equation} 
+where $\phi_{(m)}$ represents the autoregressive parameter as estimated using data that were aggregated across $m$ occasions. Of interest is whether $\phi_{(m)}$ is related to $\phi_{(1)}$, by taking $\phi_{(1)}$ to the power $m$, that is $\phi_{(1)}^{m}$. However, \textcite{ironmonger_note_1959, nerlove_estimation_1959, telser_discrete_1967} found that $\phi_{(m)}$ and $\phi_{(1)}^{m}$ are generally not equivalent. The problem is that the act of aggregation creates a particular structure in the data---specifically, a first-order moving average structure---at the $m = 1$ level. However, in proper aggregated data (where $m > 1$), information about this structure at the $m = 1$ level is not present. Therefore, models for aggregated data such as Equation~\ref{eq:AR1-aggregated} cannot correctly model all the structure in the data (i.e., the model is misspecified), and the autoregressive parameter for the aggregated process $\phi_{(m)}$ cannot simply be expressed as $\phi_{(1)}^{m}$. For this reason, \textcite{amemiya_effect_1972} argue that the dynamics of an aggregated process are qualitatively different from those of a disaggregated process, even though the aggregated measurements are created from the disaggregated process. 
+
+To better understand the relationship between $\phi_{(m)}$ (for $m > 1$) and $\phi_{(1)}$, \textcite{hickman_effects_1972} express the OLS-estimate of $\phi_{(m)}$ as a function of $\phi_{(1)}$. They show that for a covariance stationary process (i.e., when $|\phi_{(1)}| < 1$ and with constant variance and covariance over time), $\phi_{(m)}$ is larger than $\phi_{(1)}^{m}$. \textcite{hickman_effects_1972} also generalize their analysis to more complicated models such as the ARX(1), comparing both the disaggregated autoregressive parameter $\phi_{(1)}$ and time-dependent effect of $X$, $\beta_{(1)}$, with their aggregated counterparts $\phi_{(m)}$ and $\beta_{(m)}$. While they are able to compute the probability limit of the coefficients of the aggregated ARX(1) model as a function of coefficients of the data generating mechanism, they note that ``This relationship is so complicated that no general tendencies can be observed until simplifying approximations are made'' \parencite[][p. 689]{amemiya_effect_1972}, and resort to simulations. In Section 3, we similarly rely on simulations to study the impact of time-aggregation and low process coverage in three different scenarios. 
 
 \subsection{2.3 Process Coverage} 
-In addition to time-aggregation of variables, panel data are also commonly characterized by repeated measurements at relatively large intervals. In the past decades, psychological and behavioral researchers have increasingly understood many psychological processes as \textit{continuous time processes}. With panel designs, researchers attempt to systematically ``tap into'' (sample from) such ongoing processes by measuring variables at discrete time points, while the process in between subsequent discrete time points remains unobserved. A critical issue here is the decision of how much time to allow for between measurements occasions, as the parameter estimates from typical discrete-time statistical models are dependent on the chosen time-interval \parencite{gollob_taking_1987}. That is, when using the LISS panel to regress anxiety levels on previous anxiety levels and social media use, the resulting estimates of autoregressive and cross-lagged effects refer to effects that take place over one year; if measurements had instead been taken every six months, analyses would have likely results in different autoregressive and cross-lagged effects even when the underlying causal process remains unchanged. The time interval between measurements in combination with the time-aggregation of those measurements determines the degree to which a process is actually captured (i.e., the process coverage) and how much remains unobserved \parencite{hamaker_within-between_2023}.  
+In addition to time-aggregation of variables, panel data are also commonly characterized by repeated measurements of a process of interest at relatively large intervals; the process in between subsequent discrete time points remains unobserved. A critical issue here is the decision of how much time to allow for between measurements occasions, as the parameter estimates from typical discrete-time statistical models are dependent on the chosen time-interval \parencite{gollob_taking_1987}. That is, when using the LISS panel to regress anxiety levels on previous anxiety levels and social media use, the resulting estimates of autoregressive and cross-lagged effects refer to effects that take place over one year; if measurements had instead been taken every six months, analyses would have resulted in different autoregressive and cross-lagged effects even when the underlying causal process remains unchanged. The time interval between measurements in combination with the time-aggregation of those measurements determines the degree to which a process is actually captured (i.e., the process coverage) and how much remains unobserved \parencite{hamaker_within-between_2023}.  
 
-In the context of panel data, measurements are typically taken at monthly or yearly intervals, but it is not unreasonable to assume many psychological processes of interest are actually occurring at a (much) finer time scale \parencite{dorman_optimal_2015, collins_effect_2002}. The continuous time (CT) framework explicitly models the dependency of parameters to time-lags using stochastic differential equations, and therefore allows us to link parameter estimates from measurements at longer intervals, to processes at finer intervals \parencite{voelkle_sem_2012, oud_continuous_2000}. For example, given a disaggregated day-to-day AR(1) process with autoregressive effect $\phi_{(1)}$, it is easy to show that the expected autoregressive relationship when measurements are taken only every two days (i.e., skipping every other day of measurement) is $\phi_{(1)}^{2}$. This logic similarly applies to the processes of aggregated data, where the autoregressive relationship $\phi_{(m)}$ across every second measurement occasion is $\phi_{(m)}^{2}$. By this logic, you would expect the autoregressive parameter of a day-to-day process to approach zero as the time interval between repeated measurements increases to months or years as is typical of panel data (assuming $|\phi_{(1)}| < 1$). For ARX(1) models, the instantaneous effect of time-dependent exposures $\beta_{0_{(m)}}$ is independent of the time-interval between repeated measures, whereas the autoregressive parameter of the ARX(1) model has the same dependency on the time-interval as the the autoregressive parameter in the AR(1) model \parencite{van_montfort_understanding_2018}. For dynamic models with multiple variables---such as the lag-1 vector autoregressive, VAR(1), model---the relationship between parameters at varying time lags is more complex due to interacting direct and indirect effects in the underlying continuous-time process, but is well-understood and described \parencite{oud_sem_2018}. 
+In the context of panel data, measurements are typically taken at monthly or yearly intervals, but it is not unreasonable to assume many psychological processes are actually occurring at a finer timescale \parencite{dormann_optimal_2015, collins_effect_2002}. Therefore, it is of interest to study how parameters from dynamic models based on panel data are related to the parameters that govern a data generating mechanism that is theorized to occur at a finer timescale. As explained in Section 2.2, in a disaggregated AR(1) model, the autoregressive effect across $d$ periods is a function of the lag-1 autoregressive effect given by $\phi_{(1)}^{d}$. This logic similarly applies to aggregated data ($m > 1$), where the autoregressive relationship $\phi_{(m)}$ across every second measurement occasion is $\phi_{(m)}^{d}$. This implies that the autoregressive parameter of a day-to-day process would approach zero as the time interval between repeated measurements increases (e.g., to months or years). For ARX(1) models, the instantaneous effect of time-dependent exposures $\beta_{0_{(m)}}$ is independent of the time-interval between repeated measures; the autoregressive parameter of the ARX(1) model has the same dependency on the time-interval as the the autoregressive parameter in the AR(1) model \parencite{van_montfort_understanding_2018}. For dynamic models with multiple variables and higher-order effects, the relationship between parameters at varying time lags is more complex due to interacting direct and indirect effects, but is well-understood and described in the continuous-time literature \parencite[the interested reader is referred to][]{oud_sem_2018, van_montfort_continuous_2018}. 
 
-While the continuous time framework has been proposed as a useful tool to make inferences about the underlying short-term process with measurements that were taken at a different measurement frequency, the unobserved part of the process in between measurement occasions does present some potential problems from a causal inference perspective. Unbiased estimation of the causal effects assumes that all confounders have been measured such that they can be adjusted for in a statistical analysis. However, suppose that two processes, such as anxiety levels and social media use, vary in discrete time every day, but are observed only every two days. In this situation, the unobserved intermittent levels of anxiety and social media use can act as unobserved confounders that prevent unbiased estimation of particular effects \parencite{zhang_causal_2011}. Figure~\ref{fig:DAG_ARX1_missingFrames} illustrates this with a directed acyclic graph (DAG) for an ARX(1) process. Here, $k = 1$ the first measurement which takes place on day 1, $k = 2$ denotes the second measurement which takes place on day 3, $k = 3$ denotes the third measurement which takes place on day 5, etc. The non-integer $k$-values represent existing, but unobserved levels of anxiety and social media use due to the systematic sampling scheme. From Figure~\ref{fig:DAG_ARX1_missingFrames_DGM}, it can be seen that for lag-0 effects of social media use on anxiety levels at occasion $k$, the social media use at the previous day is a common cause and thus requires adjustment for when attempting to estimate the lag-0 effect $\beta_{0_{(1)}}$. However, when measurements are taken only every second day as in Figure~\ref{fig:DAG_ARX1_missingFrames_observed}, social media use at the previous day remains unobserved. Hence estimates based on observed data $\Tilde{\beta}_{0_{(1)}}$ will be biased for the true lag-0 effect $\beta_{0_{(1)}}$ that generated the data. This concern similarly applies when analyzing aggregated data, and is the focus of Scenario 1 in our simulation study.
+Although the the relationship between parameters based on data at various time intervals is well-studied for dynamic processes, without additional assumptions, the unobserved part of the process in between measurement occasions poses a challenge from a causal inference perspective. Unbiased estimation of causal effects assumes that all confounders have been measured such that they can be adjusted for in a statistical analysis. However, suppose that two processes, such as anxiety levels and social media use, vary and interact with each other in discrete-time every day. This is illustrated in Figure~\ref{fig:DAG_ARX1_missingFrames_DGM} using a directed acyclic graph (DAG), which is a graphical representation of a causal process. In this DAG, and under a sampling scheme that takes measurement every other day, $X_{k_{(1)}}$ and $Y_{k_{(1)}}$ are social media use and anxiety levels on day 1, $X_{k_{(1)} + \frac{1}{2}}$ and $Y_{k_{(1)} + \frac{1}{2}}$ are social media use and anxiety levels on day 2, $X_{k_{(1)} + 1}$ and $Y_{k_{(1)} + 1}$ are social media use and anxiety levels on day 3, etc. The arrows represent causal effects between variables. Suppose further that our interest is in the within-day effect of social media use on stress $\beta_{0_{(1)}}$. To estimate the effect $\beta_{0_{(1)}}$ at occasion $k_{(1)} + 1$, we would need to adjust for social media use the previous day $X_{k_{(1)} + \frac{1}{2}}$, as this acts as a confounder for the direct relationship $X_{k_{(1)} + 1} \rightarrow Y_{k_{(1)} + 1}$. However, under a sampling scheme that takes measurements only every other day, social media use and anxiety levels for non-integer $k$-occasions (i.e., days 2, 4, etc.) remain unobserved. That is, researchers would only have the variables in Figure~\ref{fig:DAG_ARX1_missingFrames_observed} available to them. Therefore it is not possible to control for $X_{k_{(1)} + \frac{1}{2}}$ in an analysis model. In other words, the causal effect $\beta_{0_{(1)}}$ is unidentified in the data of Figure~\ref{fig:DAG_ARX1_missingFrames_observed}. 
 
 \begin{figure}
     \centering
@@ -230,7 +233,7 @@ While the continuous time framework has been proposed as a useful tool to make i
                 \draw (\tick) -- ++(0,1.5); 
             }
         \end{tikzpicture}
-        \caption{Data generating mechanism for a disaggregated ($m = 1$) process.}
+        \caption{A directed acyclical graph representing the causal dependencies between social media use $X$ and $Y$ anxiety over time.}
         \label{fig:DAG_ARX1_missingFrames_DGM}
     \end{subfigure}
     \vspace{1cm}
@@ -250,18 +253,6 @@ While the continuous time framework has been proposed as a useful tool to make i
             \node[manifest, below of = y0, yshift = -1.5cm] (x0) {$X_{k_{(1)}}$};
             \node[manifest, below of = y2, yshift = -1.5cm] (x2) {$X_{k_{(1)} + 1}$};
             \node[manifest, below of = y4, yshift = -1.5cm] (x4) {$X_{k_{(1)} + 2}$};
-
-            % Paths: Time-dependent effects
-            \draw[paths] (x0) -- (y0) node[midway, right] {$\Tilde{\beta}_{0_{(1)}}$};
-            \draw[paths] (x2) -- (y2) node[midway, right] {$\Tilde{\beta}_{0_{(1)}}$};
-            \draw[paths] (x4) -- (y4) node[midway, right] {$\Tilde{\beta}_{0_{(1)}}$};
-
-            % Paths: Autoregressive effects
-            \draw[paths] (x0) -- (x2) ;
-            \draw[paths] (x2) -- (x4);
-                    
-            \draw[paths] (y0) -- (y2) node[midway, above] {$\Tilde{\phi}_{(1)}$};
-            \draw[paths] (y2) -- (y4) node[midway, above] {$\Tilde{\phi}_{(1)}$};
                     
             % Time line                
             \node (timeline-start) [below of = x0, yshift = -0.45cm, xshift = -1cm] {};
@@ -279,21 +270,41 @@ While the continuous time framework has been proposed as a useful tool to make i
                 \draw (\tick) -- ++(0,1.5); 
             }
         \end{tikzpicture}
-        \caption{The observed variables when measurements are taken every second occasion.}
+        \caption{The observed measurements of social media use $X$ and anxiety $Y$ under a systematic sampling scheme that takes measurements every other day.}
         \label{fig:DAG_ARX1_missingFrames_observed}
     \end{subfigure}
-     \caption{A directed acylic graph representing a bivariate day-to-day process with lag-0 causal effects from $X_{k_{(1)}}$ to $Y_{k_{(1)}}$, and its observed (i.e., every second day) counterpart. $\phi_{(1)}$ and $\beta_{0_{(1)}}$ represent the day-to-day autoregressive effect of $Y$ and lag-0 causal effect from $X$ to $Y$, respectively. $\Tilde{\phi}_{(1)}$ and $\Tilde{\beta}_{0_{(1)}}$ represent their observed (i.e., every second day) counterparts.}
+     \caption{An illustration of the causal dependencies between social media use $X$ and $Y$ anxiety over time, and the observed measurements under a systematic sampling scheme that takes measurements every other day.}
     \label{fig:DAG_ARX1_missingFrames}
 \end{figure}
 
+\subsection{2.4 Conclusion}
+In this section we have discussed issues with using data that do not align in a temporal sense with the causal process of interest. More specifically, we have explained how time-aggregation and systematic (under)sampling can obscure the relationship between the parameters of the data generating mechanism (i.e., the disaggregated process) and the parameters of a dynamic model fitted on a aggregated data. With time-aggregation, these difficulties arise because the aggregation of data changes the structure in the data, implying that models based on aggregated data are necessarily misspecified. With systematic (under)sampling, these issues arise due to the presence of unobserved confounders in aggregated data. 
    
-\section{3. Methods}
-For relatively simple data generating mechanisms we can reason about, and analytically derive how time-aggregation and low process coverage independently impact the parameter estimates from dynamic models. In the current section, we setup a simulation study to assess their \textit{combined} impact on parameter estimation in common analysis models for panel data. The simulations comprise of three different scenarios, each including various degrees of time aggregation and process coverage. Scenario 1 focuses on single subject data with many repeated measures; Scenario 2 extends the simulations of single subject data with a time-varying confounder; Scenario 3 changes the aggregation scheme and systematic sampling scheme to match that of typical panel data, decreasing the number of observed repeated measures and increasing the number of observed units. In line with the running example, we focused on the effect of a presumed binary cause (social media usage) on a continuous outcome (anxiety), and we assume this process to be occurring relatively rapidly compared to the measurement frequency of panel data, for example, within a day. Annotated R code used for the data generation and analyses in this paper can be found in the online supplementary materials at \url{https://jeroendmulder.github.io/time-aggregation}. 
+\section{3. Simulation Study}
+In the current section, we perform a simulation study to demonstrate the combined impact of time-aggregation and systematic (under)sampling on the parameter estimates of panel models in common panel designs. The simulations comprise of three different scenarios, each including various degrees of time aggregation and process coverage. Scenario 1 focuses on $N = 1$ data with many repeated measures; Scenario 2 extends the simulations of $N = 1$ data with a time-varying confounder; Scenario 3 changes the aggregation scheme and systematic sampling scheme to match that of typical panel data, decreasing the number of observed repeated measures and increasing the number of observed participants. In line with the running example, we focused on the effect of a presumed binary cause (social media usage) on a continuous outcome (anxiety), and we assume this process to be occurring relatively rapidly compared to the measurement frequency of panel data, for example, within a day. 
 
-\subsection{3.1 Data Generation}
-For all scenarios, we generate data for the binary time-varying exposure $X_{t}$ (0 = no social media use, 1 = social media use) and continuous outcome $Y_{t}$ at time points $t = 1, 2, 3, ..., T$. Within each scenario we inspect multiple experimental conditions, preprocessing the data in different ways to reflect various degrees of time aggregation and process coverage due to different systematic sampling schemes. This ultimately results in the observed $X_{k_{(m)}}$ and $Y_{k_{(m)}}$, which are used in analyses. A burn-in period of a hundred time points was used to remove the influence of initial values. For each condition, a thousand replications were simulated. Data were generated in base R \parencite[version 4.4.1;][]{r_core_team_r_2024} and C++ \parencite{stroustrup_c_2013} using the R packages Rcpp \parencite[version 1.0.13;][]{eddelbuettel_rcpp_2011} and RcppArmadillo \parencite[version 14.0.2-1;][]{eddelbuettel_rcpparmadillo_2014}. 
+0For all scenarios, we generate data for the binary time-varying exposure $X_{t}$ (0 = no social media use, 1 = social media use) and continuous outcome $Y_{t}$ at time points $t = 1, 2, 3, ..., T$. In the context of our empirical example, $t$ represents a day. Within each scenario we inspect multiple experimental conditions, preprocessing the data in different ways to reflect various degrees of time aggregation and process coverage due to different systematic sampling schemes. This ultimately results in the observed $X_{k_{(m)}}$ and $Y_{k_{(m)}}$, which are then analyzed with a particular estimation model (depending on the scenario). A burn-in period of two hundred time points was used to remove the influence of initial values. For each condition, a thousand replications were simulated. Data were generated in base R \parencite[version 4.4.1;][]{r_core_team_r_2024} and C++ \parencite{stroustrup_c_2013} using the R packages Rcpp \parencite[version 1.0.13;][]{eddelbuettel_rcpp_2011} and RcppArmadillo \parencite[version 14.0.2-1;][]{eddelbuettel_rcpparmadillo_2014}. Annotated R code used for the data generation and analyses in this paper can be found in the online supplementary materials at \url{https://jeroendmulder.github.io/time-aggregation}. 
 
-Scenario 1 is intended to investigate the combined influence of time-aggregation and low process coverage in a relatively simple setting. The data generating mechanism is a bivariate day-to-day process with lag-0 causal effects from $X_{k_{(1)}}$ to $Y_{k_{(1)}}$ as visualized in Figure~\ref{fig:DAG_ARX1_missingFrames_DGM}. The exposure is an exogenous Markov Chain process with a transition probability of 0.119 for switching from state 0 (no social media use) to state 1 (social media use) and a transition probability of 0.5 for switching from state 1 to state 0. This implies an long-term state means of 0.8075 for state 0 and 0.1925 for state 1 \parencite{hoel_introduction_1986}. In Scenarios 2 and 3, the transition probabilities are made dependent on covariates and previous outcome. The outcome is generated as Equation~\ref{eq:ARX1} with $\phi_{(1)} = 0.5$, $\beta_{0_{(1)}} = 0.5$, and the residual normally distributed with variance set to $\sigma_{Y}^{2} = 1$. In this scenario, we aggregate the data over $m = 1, 2, 3$ periods and systematically sample every first, every second, and every third observation. Figure~\ref{fig:scenario1} illustrates this for the case of aggregation over two time periods ($m = 2$) and sampling every second observation. Of interest is how the parameter estimates based on analyses on aggregated data under a systematic sampling scheme ($\Tilde{\phi}_{(m)}$ and $\Tilde{\beta}_{0_{(m)}}$) compare to the parameters in the data generating mechanism. Combined, this scenario comprises of nine experimental conditions. The total number of time points $T$ was adjusted per experimental condition to ensure a thousand observations for each condition. 
+\subsection{3.1 Scenario 1}
+Scenario 1 concerns the combined influence of time-aggregation and low process coverage in a relatively simple setting with $N = 1$ data. All relationships in the data generating mechanism are linear and there is no time-varying covariate. 
+
+\subsubsection{3.1.1 Data Generation} 
+The data generating mechanism is a bivariate day-to-day process with autoregressive effects for both $X_{t}$ and $Y_{t}$, and lag-0 causal effects from $X_{t}$ to $Y_{t}$. It is visualized in Figure~\ref{fig:DAG_ARX1_missingFrames_DGM}. The exposure is a Markov Chain process with a transition probability of 0.119 for switching from state 0 (no social media use) to state 1 (social media use) and a transition probability of 0.5 for switching from state 1 to state 0. This implies long-term state means of 0.8075 for state 0 and 0.1925 for state 1 \parencite{hoel_introduction_1986}. The outcome is generated as 
+\begin{equation} \label{eq:scenario1-DGM-Y}
+    Y_{it} = \phi_{(1)} Y_{t - 1} + \beta_{0} X_{it} + \epsilon_{Y,t}, 
+\end{equation}
+where $\phi_{(1)} = 0.5$, $\beta_{0_{(1)}} = 0.5$, and the residual is normally distributed with variance set to $\sigma_{\epsilon_{Y}}^{2} = 1$. In the context of the empirical example, $\beta_{0_{(1)}} = 0.5$ implies that the use of social media on a particular day increases anxiety with 0.5 points \textit{that same day}, and $\phi_{(1)} = 0.5$ implies that anxiety levels on one day are carried over to some degree to the next day (i.e., there is some day-to-day stability). The graph above the timeline in Figure~\ref{fig:scenario1} illustrates this data generating mechanism. 
+
+In this scenario, we aggregate the data over $m = 1, 2, 3, 5, 10$ periods and systematically sample every first, every second, and third, fifth, and tenth observation to create the $X_{k_{(m)}}$ and $Y_{k_{(m)}}$ that are used in analyses. Combined, this results in 25 experimental conditions for this scenario. The total number of time points $T$ was adjusted per experimental condition to ensure a thousand observations for each condition. 
+
+\subsubsection{3.1.2 Estimation}
+For each experimental condition, we analyze the observed $X_{k_{(m)}}$ and $Y_{k_{(m)}}$ with a univariate ARX(1) model, given by
+\begin{equation} \label{eq:scenario1-estimation}
+    Y_{k_{(m)}} = \phi_{(m)} Y_{k_{(m)} - 1} + \beta_{k_{(m)}} X_{k_{(m)}} + \epsilon_{Y,k_{(m)}}.
+\end{equation}
+The graph below the timeline in Figure~\ref{fig:scenario1} is a path diagram of this estimation model for the condition with $m = 2$ and systematically sampling every second frame. Of interest is how the parameter estimates from the model in Equation~\ref{eq:scenario1-estimation}, $\hat{\phi}_{(m)}$ and $\hat{\beta}_{k_{(m)}}$, compare to the parameters $\phi_{(1)}$ and $\beta_{0_{(1)}}$ that govern the data generating mechanism. This model was fitted using dynamic structural equation modeling (DSEM) in Mplus, version 8.11 \parencite{muthen_mplus_2017}. 
+
+Note that the estimation model only includes part of the dependencies of the data generating mechanism described in Section 3.1.1. Specifically, the estimation model is unidirectional, only including the effects between variables in the direction of the outcome $Y_{k_{(m)}}$; the dependencies of $X_{k_{(m)}}$ on previous $X_{k_{(m)} - 1}$ are not included. This modeling approach might be somewhat unfamiliar for researchers in psychology and related disciplines, as in the psychological literature it is relatively common to attempt to model the entire data generating mechanism using multivariate analysis techniques such as structural equation modeling. However, when the interest is in one specific well-defined causal effect (as is the case in our empirical example), the causal inference literature shows that it is unnecessary to include all the relationships of a data generating mechanism in a statistical model in order to estimate the causal effect. In fact, from a causal inference perspective, there is a concern that modeling more relationships than necessary, leads to an increased probability of violations of model assumptions and thus bias in the causal effect estimates \parencites{vanderweele_invited_2012, van_der_laan_targeted_2011-1}. Therefore, our estimation model includes only a subset of the relationships of the data generating model.
 
 \begin{figure}
     \centering
@@ -301,7 +312,8 @@ Scenario 1 is intended to investigate the combined influence of time-aggregation
         time/.style={rectangle, inner sep=0pt, minimum size=8mm, align=center},
         manifest/.style={rectangle,draw,very thick,inner sep=0pt,minimum width=8mm,minimum height=8mm},
         paths/.style={->, very thick, -latex},
-        double/.style={very thick, -latex}
+        resid/.style={circle, draw, very thick, inner sep=0pt, minimum size=7mm, align=center},
+        double/.style={<->, very thick, -latex}
     ]
         % Nodes
         \node[manifest] (y0) at (0,0) {$Y_{t}$};
@@ -374,44 +386,114 @@ Scenario 1 is intended to investigate the combined influence of time-aggregation
         }
             
         % Nodes observed
-        \node[manifest, below of = t0, xshift = 1cm, minimum width = 28mm] (yk0) {$Y_{k_{(2)}}$};
-        \node[manifest, below of = t4, xshift = 1cm, minimum width = 28mm] (yk1) {$Y_{k_{(2)} + 1}$};
+        \node[resid, below of = t0, xshift = 1cm] (eyk0) {$\epsilon_{k_{(2)}}$};
+        \node[resid, below of = t4, xshift = 1cm] (eyk1) {$\epsilon_{k_{(2)} + 1}$};
+        
+        \node[manifest, below of = eyk0, xshift = 0cm, yshift = -0.5cm, minimum width = 28mm] (yk0) {$Y_{k_{(2)}}$};
+        \node[manifest, below of = eyk1, xshift = 0cm, yshift = -0.5cm, minimum width = 28mm] (yk1) {$Y_{k_{(2)} + 1}$};
         \node[right of = yk1, xshift = 5.5cm] (yk2) {};
                     
         \node[manifest, below of = yk0, yshift = -1cm, minimum width = 28mm] (xk0) {$X_{k_{(2)}}$};
         \node[manifest, below of = yk1, yshift = -1cm, minimum width = 28mm] (xk1) {$X_{k_{(2)} + 1}$};
         \node[right of = xk1, xshift = 5.5cm] (xk2) {};
 
+        % Paths: Residuals
+        \draw[paths] (eyk0) -- (yk0);
+        \draw[paths] (eyk1) -- (yk1);
+
         % Paths: Time-dependent effects
         \draw[paths] (xk0) -- (yk0) node[midway, right] {$\Tilde{\beta}_{0_{(2)}}$};
         \draw[paths] (xk1) -- (yk1) node[midway, right] {$\Tilde{\beta}_{0_{(2)}}$};
 
         % Paths: Autoregressive effects
-        \draw[paths] (xk0) -- (xk1) ;
-        \draw[paths, dotted] (xk1) -- (xk2);
-                   
         \draw[paths] (yk0) -- (yk1) node[midway, above] {$\Tilde{\phi}_{(2)}$};
         \draw[paths, dotted] (yk1) -- (yk2) node[midway, above] {$\Tilde{\phi}_{(2)}$};
     \end{tikzpicture}
     \vspace{1cm}
-    \caption{Above the timeline: The data generating mechanism of Scenario 1 with parameters $\phi_{(1)}$ and $\beta_{0_{(1)}}$. Below the timeline: The aggregated variables ($m = 2$) when sampling every second observation, and the statistical relationships between them.}
+    \caption{Above the timeline: A DAG of the data generating mechanism of Scenario 1. Below the timeline: A path diagram of the estimation model of Scenario 1 for the $m = 2$ aggregated data with sampling every two occasions. To avoid clutter, the (residual) variances and mean structure are not displayed in the path diagram.}
     \label{fig:scenario1}
 \end{figure}
 
-Scenario 2 extends the simulations for single subject data with a continuous time-varying covariate $L_{t}$ that confounds the relationship between $X_{t}$ and $Y_{t}$. $L_{t}$ is generated by
-\begin{equation*}
+\subsubsection{3.1.3 Results} 
+Bias and coverage probability (coverage) for the estimated $\beta_{0_{(1)}}$  across the experimental conditions are presented in Table~\ref{tab:scenario1-results}, in the columns under ``Scenario 1''. Figure~\ref{fig:scenario1-results-beta0} visualizes the sampling distribution of the estimate of $\beta_{0}$. The impact of time-aggregation on the estimated $\beta_{0_{(1)}}$ can be seen by comparing results across the different rows for a given column; the impact of systematic sampling can be evaluated by comparing results across the different columns for a given row. Numerical results and visualizations of sampling distributions for estimates of the autoregressive effect can be found in Appendix~\ref{app:simulation-scenario1}.
+
+First we inspect results for the experimental condition where the temporal characteristics of the data and the data generating process align, that is $m = 1$ and sampling every first observation. Estimates for $\beta_{0}$ and $\phi$ using the model of Equation~\ref{eq:scenario1-estimation} show no bias and good coverage. This implies that the estimation model is sufficient to estimate the causal effect of interest and the autoregressive effect when the temporal characteristics of the data and the effect of interest are aligned. 
+
+Second, we inspect the effect of time-aggregation, holding the sampling scheme constant. In the condition where data were sampled every first observation, time-aggregation introduces an upward bias for the estimated $\beta_{0}$, leading to estimates with an average of $0.925$ (Monte Carlo standard error, MC-SE = 0.003) and a coverage rate of the 95\% confidence interval of 0.018 for the case of time aggregation over $m = 10$ periods. A similar upward bias due to the impact of time-aggregation exists for other systematic (under)sampling schemes---that is, sampling every second, third, fifth, or tenth observation---as well. 
+
+Third, when inspecting the effect of systematic (under)sampling for a given time-aggregation scheme, it can be seen that the systematic sampling itself also introduces an upward bias for the estimates of $\beta_{0}$. That is, for a given aggregation scheme (row), the average estimate of $\beta_{0}$ shows a positive bias when sampling only every second, third, fifth, or tenth observation. This can be explained by the intermitted exposure variables $X$ that remain unobserved as a result of the systematic (under)sampling, and that act as confounders for the effect $\beta_{0}$. Combined, the time-aggregation and systematic sampling result in an average estimate for $\beta_{0}$ of $0.936$ (MC-SE $= 0.003$) with a coverage rate of the 95\% confidence intervals of 0.018 for the case of sampling every 10th occasion and time-aggregation over $m = 10$ periods, whereas the true population value is $\beta_{0} = 0.5$. 
+
+ \begin{table}[]
+    \centering
+    \footnotesize
+    \begin{tabular}[t]{ccccccc}
+        \toprule
+            &       & \multicolumn{2}{c}{Scenario 1} & & \multicolumn{2}{c}{Scenario 2} \\
+        \cmidrule(lr){3-4} \cmidrule(lr){6-7}
+        $m$ & Every & Bias (MC-SE) & Cover. (MC-SE) & & Bias (MC-SE) & Cover. (MC-SE) \\
+        \midrule
+        1 & 1 & 0.501 (0.002) & 0.965 (0.006) & & 0.5 (0.003) & 0.944 (0.007)\\
+        1 & 2 & 0.599 (0.003) & 0.792 (0.013) & & 0.233 (0.003) & 0.168 (0.012)\\
+        1 & 3 & 0.62 (0.003) & 0.75 (0.014) & & 0.052 (0.003) & 0.003 (0.002)\\
+        1 & 5 & 0.621 (0.003) & 0.745 (0.014) & & -0.061 (0.003) & <0.000 (<0.000)\\
+        1 & 10 & 0.625 (0.003) & 0.741 (0.014) & & -0.078 (0.003) & <0.000 (<0.000)\\
+        \addlinespace
+        2 & 1 & 0.649 (0.003) & 0.584 (0.016) & & 0.275 (0.003) & 0.347 (0.015)\\
+        2 & 2 & 0.716 (0.003) & 0.363 (0.015) & & -0.157 (0.003) & <0.000 (<0.000)\\
+        2 & 3 & 0.715 (0.003) & 0.401 (0.015) & & -0.24 (0.003) & <0.000 (<0.000)\\
+        2 & 5 & 0.716 (0.003) & 0.388 (0.015) & & -0.246 (0.003) & <0.000 (<0.000)\\
+        2 & 10 & 0.717 (0.003) & 0.388 (0.015) & & -0.249 (0.003) & <0.000 (<0.000)\\
+        \addlinespace
+        3 & 1 & 0.746 (0.003) & 0.249 (0.014) & & 0.062 (0.003) & 0.007 (0.003)\\
+        3 & 2 & 0.776 (0.003) & 0.212 (0.013) & & -0.292 (0.003) & <0.000 (<0.000)\\
+        3 & 3 & 0.77 (0.003) & 0.227 (0.013) & & -0.311 (0.003) & <0.000 (<0.000)\\
+        3 & 5 & 0.775 (0.003) & 0.202 (0.013) & & -0.309 (0.003) & <0.000 (<0.000)\\
+        3 & 10 & 0.775 (0.003) & 0.214 (0.013) & & -0.301 (0.003) & <0.000 (<0.000)\\
+        \addlinespace
+        5 & 1 & 0.839 (0.003) & 0.085 (0.009) & & -0.166 (0.003) & <0.000 (<0.000)\\
+        5 & 2 & 0.854 (0.003) & 0.07 (0.008) & & -0.321 (0.003) & <0.000 (<0.000)\\
+        5 & 3 & 0.859 (0.003) & 0.058 (0.007) & & -0.323 (0.003) & <0.000 (<0.000)\\
+        5 & 5 & 0.849 (0.003) & 0.065 (0.008) & & -0.323 (0.003) & <0.000 (<0.000)\\
+        5 & 10 & 0.853 (0.003) & 0.063 (0.008) & & -0.324 (0.003) & <0.000 (<0.000)\\
+        \addlinespace
+        10 & 1 & 0.925 (0.003) & 0.018 (0.004) & & -0.234 (0.003) & <0.000 (<0.000)\\
+        10 & 2 & 0.927 (0.003) & 0.011 (0.003) & & -0.275 (0.003) & <0.000 (<0.000)\\
+        10 & 3 & 0.928 (0.003) & 0.013 (0.004) & & -0.273 (0.003) & <0.000 (<0.000)\\
+        10 & 5 & 0.927 (0.003) & 0.023 (0.005) & & -0.271 (0.003) & <0.000 (<0.000)\\
+        10 & 10 & 0.936 (0.003) & 0.018 (0.004) & & -0.271 (0.003) & <0.000 (<0.000)\\
+        \bottomrule
+    \end{tabular}
+    \caption{Average estimate and 95\% confidence interval coverage rate (including Monte Carlo standard errors) for estimates $\beta_{0}$ across experimental conditions in Scenarios 1 and 2.}
+    \label{tab:scenario1-results}
+\end{table}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/plot_scenario1_hats_beta0.png}
+    \caption{Results Scenario 1: Sampling distribution of the estimated $\beta_{0}$ across experimental conditions. The columns ``1st'', ``2nd'', ``3rd'', ``5th'' and ``10th'' denote systematic sampling at every first, every second, every third, every fifth, and every tenth measurement occasion, respectively. Results are based on 1000 replications. The different rows represent time-aggregation across increasing numbers of time periods $m$. The black dotted line denotes the population value $\beta_{0} = 0.5$. The colored dot-stripe lines denote the average parameter estimate per experimental condition.}
+    \label{fig:scenario1-results-beta0}
+\end{figure}
+
+\subsection{3.2 Scenario 2}
+When the aim of a study is causal inference, researchers typically have to control for covariates to identify the causal effect of interest. Therefore, in Scenario 2, the data generating mechanism of Scenario 1 is extended with a time-varying covariate $L$. In the context of our empirical example, this could represent daily amount of alcohol or drug usage \parencite{feder_is_2020}. 
+
+\subsubsection{3.2.1 Data Generation}
+Suppose that $L_{t}$ is a continuous time-varying covariate that influences $X_{t}$ and $Y_{t}$ within a day, and itself has an autoregressive structure. The top of Figure~\ref{fig:scenario2} illustrates this data generating mechanism. Let $L_{t}$ be generated by
+\begin{equation*} \label{eq:scenario2-DGM-L}
     L_{t} = \alpha L_{t - 1} + \epsilon_{L,t},
 \end{equation*}
-with $\alpha_{(1)} = 0.5$ and the residual $e_{L, t}$ normally distributed with variance set to $\sigma_{L}^{2} = 1$. The transition probabilities of the exposure are now made to be dependent on the previous outcome $Y$ and current covariate $L$. Depending on the current state of the exposure $X_{t}$, the next exposure state $X_{t + 1}$ is given by the logistic regression models 
-\begin{align*}
+with $\alpha = 0.5$ and the residual $\epsilon_{L, t}$ normally distributed with variance set to $\sigma_{L}^{2} = 1$. To have the time-varying covariate $L_{t}$ influence the exposure $X_{t}$, we make the transition probabilities of the exposure dependent on the previous outcome $Y$ and current covariate $L$. Depending on the current state of the exposure $X_{t}$, the next exposure state $X_{t + 1}$ is given by the logistic regression models 
+\begin{align*} 
     p(X_{t + 1} = 1 | X_{t} = 0) &= expit(\delta_{10, 0} + \delta_{10, 1} Y_{t} + \delta_{10, 2} L_{t + 1}), \\ 
     p(X_{t + 1} = 0 | X_{t} = 1) &= expit(\delta_{01, 0} + \delta_{01, 1} Y_{t} + \delta_{01, 2} L_{t + 1}),
 \end{align*}
-where $expit(\cdot) = \frac{1}{(1 + exp(-(\cdot))}$.  Parameter values for the transition from state 0 to state 1 were set to $\delta_{10, 0} = -2$, representing a high baseline probability of remaining in state 0, $\delta_{10, 1} = -0.5$, implying a negative effect of anxiety on social media use (i.e., increased anxiety decreases likelihood of subsequent social media use), and $\delta_{10, 2} = 1$, representing a positive effect of the covariate on likelihood of social media use. Parameter values for the transition from state 1 to state 0 were set to $\delta_{01, 0} = 0$, representing an even baseline probability of switching to ``no social media use'', and $\delta_{01, 1} = 1$ and $\delta_{01, 2} = 1$, implying that increased stress and covariate values increase the likelihood of switching to ``no social media use''. The outcome is generated following
-\begin{equation} \label{eq:ARX1-covariate}
+where $expit(\cdot) = \frac{1}{1 + exp(-(\cdot))}$. Parameter values for the transition from state 0 to state 1 were set to $\delta_{10, 0} = -2$, representing a high baseline probability of remaining in state 0, $\delta_{10, 1} = -0.5$, implying a negative effect of anxiety on social media use (i.e., increased anxiety decreases likelihood of subsequent social media use), and $\delta_{10, 2} = 1$, representing a positive effect of the covariate on likelihood of social media use. Parameter values for the transition from state 1 to state 0 were set to $\delta_{01, 0} = 0$, representing an even baseline probability of switching to ``no social media use'', and $\delta_{01, 1} = 1$ and $\delta_{01, 2} = 1$, implying that increased stress and covariate values increase the likelihood of switching to ``no social media use''. The outcome is generated following
+\begin{equation} \label{eq:scenario2-DGM-Y}
     Y_{it} = \phi Y_{t - 1} + \beta_{0} X_{it} + \gamma_{0} L_{t} + \epsilon_{Y,t}
 \end{equation}
-with $\gamma_{0} = 0.8$. $\phi$, $\beta_{0}$, and $\sigma_{Y}^{2}$ were set to the same population values as in Scenario 1. Similarly, we aggregated data generated under this mechanism over $m = 1, 2, 3$ periods and systematically sampled every first, every second, and every third time point. Again, the total number of time points $T$ was adjusted per experimental condition to ensure a thousand observations per condition. Figure~\ref{fig:scenario2} illustrates the data generating mechanism for the case of aggregation over two time periods ($m = 2$) and sampling every second observation.
+with $\gamma_{0} = 0.8$. $\phi$, $\beta_{0}$, and $\sigma_{Y}^{2}$ were set to the same population values as in Scenario 1. 
+
+To create $X_{k_{(m)}}$, $L_{k_{(m)}}$, and $Y_{k_{(m)}}$, we aggregate the generated data over $m = 1, 2, 3, 5, 10$ periods and systematically sampled every first, every second, and every third, every fifth, and every 10th time point. Again, the total number of time points $T$ was adjusted per experimental condition to ensure a thousand observations per condition. 
 
 \begin{figure}
     \centering
@@ -419,7 +501,8 @@ with $\gamma_{0} = 0.8$. $\phi$, $\beta_{0}$, and $\sigma_{Y}^{2}$ were set to t
         time/.style={rectangle, inner sep=0pt, minimum size=8mm, align=center},
         manifest/.style={rectangle,draw,very thick,inner sep=0pt,minimum width=8mm,minimum height=8mm},
         paths/.style={->, very thick, -latex},
-        double/.style={very thick, -latex}
+        resid/.style={circle, draw, very thick, inner sep=0pt, minimum size=7mm, align=center},
+        double/.style={<->, very thick, -latex}
     ]
         % Nodes
         \node[manifest] (y0) at (0,0) {$Y_{t}$};
@@ -539,8 +622,11 @@ with $\gamma_{0} = 0.8$. $\phi$, $\beta_{0}$, and $\sigma_{Y}^{2}$ were set to t
         }
             
         % Nodes observed
-        \node[manifest, below of = t0, xshift = 1cm, minimum width = 28mm] (yk0) {$Y_{k_{(2)}}$};
-        \node[manifest, below of = t4, xshift = 1cm, minimum width = 28mm] (yk1) {$Y_{k_{(2)} + 1}$};
+        \node[resid, below of = t0, xshift = 1cm] (eyk0) {$\epsilon_{k_{(2)}}$};
+        \node[resid, below of = t4, xshift = 1cm] (eyk1) {$\epsilon_{k_{(2)} + 1}$};
+        
+        \node[manifest, below of = eyk0, xshift = 0cm, yshift = -0.5cm, minimum width = 28mm] (yk0) {$Y_{k_{(2)}}$};
+        \node[manifest, below of = eyk1, xshift = 0cm, yshift = -0.5cm, minimum width = 28mm] (yk1) {$Y_{k_{(2)} + 1}$};
         \node[right of = yk1, xshift = 5.5cm] (yk2) {};
                     
         \node[manifest, below of = yk0, yshift = -1cm, minimum width = 28mm] (xk0) {$X_{k_{(2)}}$};
@@ -551,37 +637,54 @@ with $\gamma_{0} = 0.8$. $\phi$, $\beta_{0}$, and $\sigma_{Y}^{2}$ were set to t
         \node[manifest, below of = xk1, yshift = -1cm, minimum width = 28mm] (lk1) {$L_{k_{(2)} + 1}$};
         \node[right of = lk1, xshift = 5.5cm] (lk2) {};
 
+         % Paths: Residuals
+        \draw[paths] (eyk0) -- (yk0);
+        \draw[paths] (eyk1) -- (yk1);
+
         % Paths: Time-dependent effects
         \draw[paths] (xk0) -- (yk0) node[midway, right] {};
         \draw[paths] (xk1) -- (yk1) node[midway, right] {};
 
         \draw[double](lk0.north west) to [out=135, in=225] (yk0.south west);
         \draw[double](lk1.north west) to [out=135, in=225] (yk1.south west);
-
-        \draw[paths] (lk0) -- (xk0);
-        \draw[paths] (lk1) -- (xk1);
-
-        % Paths: Autoregressive effects
-        \draw[paths] (xk0) -- (xk1);
-        \draw[paths, dotted] (xk1) -- (xk2);
                    
         \draw[paths] (yk0) -- (yk1) node[midway, above] {};
         \draw[paths, dotted] (yk1) -- (yk2) node[midway, above] {};
-
-        \draw[paths] (lk0) -- (lk1);
-        \draw[paths, dotted] (lk1) -- (lk2); 
-
-        % Lag 1 effects
-        \draw[paths] (yk0) -- (xk1);
-        \draw[paths, dotted] (yk1) -- (xk2); 
         
     \end{tikzpicture}
     \vspace{0.5cm}
-    \caption{Above the timeline: The data generating mechanism of Scenario 2. The parameters have been dropped from this figure for readability. Below the timeline: The aggregated variables ($m = 2$) when sampling every second observation, and the statistical relationships between them.}
+    \caption{Above the timeline: A DAG of the data generating mechanism of Scenario 2. Below the timeline: A path diagram of the estimation model of Scenario 2, for the $m = 2$ aggregated data with sampling every two occasions. To avoid clutter, the (residual) variances and mean structure are not displayed in the path diagram.}
     \label{fig:scenario2}
 \end{figure}
 
-Scenario 3 uses the same data generating mechanism as Scenario 2, but generates data for multiple subjects, and changing the aggregation and systematic sampling scheme to be better representative of panel data. Suppose that each time point $t$ represents a day. The first experimental condition in this Scenario reflects a research design with five monthly measurement waves and with measurements of $X$, $L$, and $Y$ relating to the past week, that is, $m = 7$ and sampling only every fourth week. In the second condition we simulate the case of annual measurements and measurements referring to ``the past month''. That is, we take $m = 30$ and sample every twelfth month. For both conditions, we observe five repeated measures for a sample size of 500. Figure~\ref{fig:scenario3-data} illustrates the data for a single individual for the experimental condition with monthly measurements, and measurements referring to the past week. 
+\subsubsection{3.2.2 Estimation}
+The observed data are analyzed with a linear ARX(1) model, which is given by
+\begin{equation} \label{eq:scenario2-estimation}
+    Y_{k_{(m)}} = \phi_{(m)} Y_{k_{(m)} - 1} + \beta_{k_{(m)}} X_{k_{(m)}} + \gamma_{k_{(m)}} L_{k_{(m)}} + \epsilon_{Y,k_{(m)}}.
+\end{equation}
+The graph below the timeline in Figure~\ref{fig:scenario2} shows the path diagram belonging to this estimation model for the condition with $m = 2$ and systematically sampling every second frame. We assume the residuals $\epsilon_{Y,k_{(m)}}$ are normally distributed with a variance $\sigma^{2}_{Y}$. The model was fitted using DSEM in Mplus, version 8.11. Again, the interest lies in evaluating how informative the lag-0 parameter $\beta_{k_{m}}$ in the estimation model is about the lag-0 effect in the data generating mechanism. 
+
+\subsubsection{3.2.3 Results}
+The average estimate and 95\% coverage rate for estimates of $\beta_{0}$ across the experimental conditions are presented in Table~\ref{tab:scenario1-results}, in the columns under ``Scenario 2''. Figure~\ref{fig:scenario2-results-hats-beta0} displays the sampling distribution of the estimates of $\beta_{0_{(1)}}$ across experimental conditions in Scenario 2. Results for the parameters $\phi_{(m)}$ and $\gamma_{k_{(m)}}$ can be found Appendix~\ref{app:simulation-scenario2}.
+
+Again, first inspecting the results for the experimental condition with $m = 1$ and sampling every first frame, we find no bias in the estimates of $\beta_{0_{(1)}}$ using the model in Equation~\ref{eq:scenario2-estimation}. This shows that under alignment of the temporal characteristics of the data and the data generating mechanism, adjustment for $X$ and $L$ at the same occasions and $Y$ at the previous occasion, is enough to identify the causal effect $\beta_{0_{(1)}}$. Second, focusing on the impact of time-aggregation and systematic (under)sampling, the results now show a downward bias for the estimated $\beta_{0_{(1)}}$. Given a sampling scheme in which every first frame is sampled, time-aggregation appears to introduce a downward bias for estimates of $\beta_{0_{(1)}}$, resulting in an average estimate of -0.234 (MC-SE $= 0.003$) and a coverage rate of $< 0.001$ for the case of aggregation over $m = 10$ periods. A similar downward bias exists for the systematic (under)sampling schemes of sampling every second, every third, every fifth, or every tenth frame.
+
+Third, the systematic sampling similarly introduces a downwards bias for estimates $\beta_{0_{(1)}}$. That is, for any given time-aggregation scheme (i.e., a row in Figure~\ref{fig:scenario2-results-hats-beta0}), the bias becomes increasingly negative under systematically sampling every second, every third, etc. observation. In the experimental condition with time-aggregation across time time periods and systematically sampling every tenth frame, the average estimate of $\beta_{0}$ is even $-0.271$ (MC-SE $= 0.003$) with a coverage rate of zero. A reason for this large negative bias in this scenario might be that the effect of the time-varying confounder $L_{k}$ on the outcome $Y_{k}$ is severely overestimated, as can be seen in Appendix~\ref{app:simulation-scenario2}. The average estimate of $\gamma$ in the experimental condition with $m = 10$ and sampling every tenth frame is $1.270$, while the population value is $\gamma_{0} = 0.8$, implying an upward bias of $0.472$ (MC-SE $= 0.001$). It appears the large negative bias in $\beta_{0_{(1)}}$ might occur as a way to counter the large positive bias in estimates of $\gamma$. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/plot_scenario2_hats_beta0.png}
+    \caption{Results Scenario 2: Sampling distribution of the estimated $\beta_{0}$ across experimental conditions.}
+    \label{fig:scenario2-results-hats-beta0}
+\end{figure}
+
+\subsection{Scenario 3}
+In Scenario 3, we extend the simulations of Scenario 2 to the context of panel data. That is, in Scenario 3 we use the same data generating mechanism as Scenario 2, but now generate data for multiple subjects, and changing the aggregation and systematic sampling scheme to be representative of panel data commonly found in psychology and related disciplines. 
+
+\subsubsection{3.3.1 Data Generation}
+Data are generated according to the data generating mechanism of Scenario 2, but now for multiple independent individuals. We inspect four experimental conditions, each involving a particular combination of time-aggregation and systematic sampling. Here, we take inspiration from different datasets concerning measures of self-esteem and depression that are included in \textcite{orth_testing_2021}, and specifically the research designs underlying these datasets as described in \textcite{hamaker_within-between_2023}. The first experimental condition reflects a research design with monthly measurement waves and with measurements of $X$, $L$, and $Y$ relating to the past week, that is, $m = 7$ and sampling only every fourth week. The second condition represents a case of annual measurements, and measurements of $X$, $L$, and $Y$ referring to ``the past month''. That is, we take $m = 30$ and sample every twelfth month. The third condition concerns a design with annual measurements, the measurements of which refer to ``the past year'', such that $m = 365$ and sampling every year. The fourth condition involves a design with biannual measurements and measurements referring to the past week, that is $m = 7$ and sampling every 102nd frame. In this design, less than 1\% of the process in $X$, $L$, and $Y$ is observed \parencite{hamaker_within-between_2023}. Finally, we also include an experimental condition with $m = 1$ and sampling every first frame. This is to verify that under alignment of the temporal dynamics of the data generating mechanism and the data, the effect $\beta_{0_{(1)}}$ is identified by the estimation method described in the next section. 
+
+For all experimental conditions, we choose $T$ such that after time aggregation and systematic sampling, five repeated measures are available. The sample size was set to 500. Figure~\ref{fig:scenario3-data} illustrates the data for a single individual for the experimental condition with monthly measurements, and measurements referring to the past week. 
 
 \begin{figure}
     \centering
@@ -590,104 +693,170 @@ Scenario 3 uses the same data generating mechanism as Scenario 2, but generates 
     \label{fig:scenario3-data}
 \end{figure}
 
+\subsubsection{3.3.2 Estimation}
+Panel data with many individuals but few measurement occasions like in Scenario 3, necessitate a different modeling strategy compared to Scenarios 1 and 2. Within psychology, a popular approach is to analyse the data in wide-format using cross-lagged panel models within the structural equation modeling (SEM) framework \parencite{zyphur_data_2020, zyphur_data_2020-1, usami_unified_2019}. As we are only interested in the effect of social media use on stress, we made use of unidirectional versions of these models. Specifically, we specified a wide-format ARX(1) model in the SEM framework in which $Y_{k_{(m)}}$ is predicted by $X_{k_{(m)}}$ and $L_{k_{(m)}}$, which can be represented equivalently to Equation~\ref{eq:scenario2-estimation}. The lag-0 effects from $L_{k_{(m)}}$ and $X_{k_{(m)}}$ were constrained to be time-invariant. The time-varying exposure $X_{k_{(m)}}$ and covariate $L_{k_{(m)}}$ were allowed to freely covary with each other over time. The wide-format ARX(1) is estimated in the SEM framework using the R package lavaan \parencite[version 0.6-18;][]{rosseel_lavaan_2012}.  
 
-\subsection{3.2 Estimation}
-For Scenarios 1 and 2 we analyzed the data using a linear ARX(1) model. That is, in Scenario 1, we specified the ARX(1) model in Equation~\ref{eq:ARX1}; for Scenario 2, we specified an ARX(1) model while additionally controlling for current time-varying covariate $L_{t}$, see Equation~\ref{eq:ARX1-covariate}. In the disaggregated data, these models provide unbiased estimates for the causal lag-0 effect of $X$ on $Y$. Therefore, any bias in the parameter estimates in other conditions is due to the influence of time aggregation and missing intermittent variables due to the systematic sampling. The models were fitted as Dynamic Structural Equation Models \parencite[with the data in long-format;][]{asparouhov_dynamic_2018} in Mplus \parencite[version 8.11;][]{muthen_mplus_2017}.
-
-In Scenario 3, the number of observed measurements available for analysis is reduced from a thousand to five per subject, and the number of subjects increased to 500. Such panel data necessitate a different modeling strategy. Within psychology and related sciences, a popular approach is analyze the data in wide-format using cross-lagged panel models within the structural equation modeling (SEM) framework \parencite{zyphur_data_2020, zyphur_data_2020-1}. As we are only interested in the effect of social media use on stress, we made use of unidirectional versions of these models. Specifically, we specified a wide-format random intercept ARX(1) model, RI-ARX(1), in the SEM framework while controlling for $L_{k}$ \parencite{muthen_can_2024}. The lag-0 effects from $L_{k}$ and $X_{k}$, and the lag-1 effect of $Y_{k - 1}$ to $Y_{k}$ were constrained to be equal over time. The time-varying exposure $X_{k}$ and covariate $L_{k}$ were allowed to freely covary with each other. Again, there is no model misspecification as all specified relationships are correctly modeled (i.e., the specified relationships are correctly specified as linear and the residual is correctly assumed to come from a normal distribution). Any bias that occurs in the parameter estimates is therefore due to the effect of time aggregation and missing intermittent variables that confound the effect of interest. The RI-ARX(1) is estimated using the R package lavaan \parencite[version 0.6-18][]{rosseel_lavaan_2012}.  
-
-\section{4. Results}
-Bias, standard deviations (SD) and coverage probability (coverage) for the estimated $\beta_{0}$ across the scenarios and experimental conditions are presented in Table~\ref{tab:results-hats-beta0}. Figures~\ref{fig:results-scenario1-hats-beta0} and \ref{fig:results-scenario2-hats-beta0} visualize the sampling distribution of the estimate $\hat{\beta}_{0}$ for Scenarios 1 and 2, respectively. These results are organized by the different time-aggregation and systematic sampling schemes of each scenario. Results of scenario 3 are discussed only in-text. 
-
-\begin{table}[]
-    \centering
-    \footnotesize
-    \begin{tabular}{cccccc}
-        \toprule
-         Scenario & $m$ & Every & Bias (MC-SE) & SD & Coverage \\
-         \midrule
-         \multirow{9}{*}{1} & 1 & 1$^{st}$ & 0.001 (0.002) & 0.078 & 0.956 \\
-         & 1 & 2$^{nd}$ & 0.096 (0.003) & 0.091 & 0.790 \\
-         & 1 & 3$^{rd}$ & 0.115 (0.003) & 0.010 & 0.750 \\
-         & 2 & 1$^{st}$ & 0.149 (0.003) & 0.089 & 0.605 \\
-         & 2 & 2$^{nd}$ & 0.208 (0.003) & 0.099 & 0.399 \\
-         & 2 & 3$^{rd}$ & 0.216 (0.003) & 0.097 & 0.396 \\
-         & 3 & 1$^{st}$ & 0.249 (0.003) & 0.097 & 0.254 \\
-         & 3 & 2$^{nd}$ & 0.208 (0.003) & 0.099 & 0.399 \\
-         & 3 & 3$^{rd}$ & 0.276 (0.003) & 0.103 & 0.208 \\ \midrule
-         \multirow{9}{*}{2} & 1 & 1$^{st}$ & -0.020 (0.001) & 0.081 & 0.944 \\
-            & 1 & 2$^{nd}$ & -0.304 (< 0.001) & 0.096 & 0.171 \\
-         & 1 & 3$^{rd}$ & -0.452 (0.001) & 0.096 & 0.002 \\
-         & 2 & 1$^{st}$ & -0.232 (0.001) & 0.096 & 0.347 \\
-         & 2 & 2$^{nd}$ & -0.669 (0.001) & 0.104 & 0 \\
-         & 2 & 3$^{rd}$ & -0.754 (0.001) & 0.104 & 0 \\
-         & 3 & 1$^{st}$ & -0.425 (0.001) & 0.099 & 0.007 \\
-         & 3 & 2$^{nd}$ & -0.789 (0.001) & .0102 & 0 \\
-         & 3 & 3$^{rd}$ & -0.793 (0.0011) & 0.101 & 0 \\ \midrule
-        \multirow{2}{*}{3} & 7 & 4$^{th}$ & -0.799 (0.002) & 0.073 & 0\\
-            & 30 & 12$^{th}$ & -0.712 (0.002) & 0.072 & 0 \\
-        \bottomrule
-    \end{tabular}
-    \caption{Bias and Monte Carlo standard errors (MC-SE), standard deviation (SD), and coverage rate for the 95\% confidence interval for the estimated lag-0 effect of $X_{k_{(m)}}$ on $Y_{k_{(m)}}$ across scenarios and conditions within scenarios.}
-    \label{tab:results-hats-beta0}
-\end{table}
-
-For Scenarios 1 and 2, the impact of time-aggregation on the estimated $\beta_{0}$ can be seen by comparing results across the different rows of Figures~\ref{fig:results-scenario1-hats-beta0} and \ref{fig:results-scenario2-hats-beta0} for a given column; the impact of systematic sampling can be evaluated by comparing results across the different columns for a given row. In Scenario 1 and sampling every first observation, time-aggregation introduces an upward bias for the estimated $\beta_{0}$, leading to estimates with an average of $0.75$ (Monte Carlo standard error, MC-SE = 0.002) and a coverage rate of the 95\% confidence interval of 0.254 for the case of time aggregation over $m = 3$ periods. A similar upward bias exists for the two other systematic sampling schemes as well. Furthermore, the systematic sampling itself also introduces an upward bias in the data generating mechanism of Scenario 1. That is, for a given aggregation scheme (row), the average estimate of $\beta_{0}$ shows a positive bias when sampling only every second or every third observation. This can be explained by the intermitted exposure variables $X$ that remain unobserved as a result of the systematic sampling, and that act as confounders for the effect $\beta_{0}$. Combined, the time-aggregation and systematic sampling result in an average estimate of $\beta_{0}$ of $0.776$ (MC-SE $= 0.003$) with a coverage rate of the 95\% confidence intervals of 0.208 for the case of sampling every third occasion and time-aggregation over $m = 3$ periods, whereas the true population value is $\beta_{0} = 0.5$. 
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{figures/plot_scenario1_hats_beta0.png}
-    \caption{Results Scenario 1: Sampling distribution of the estimated $\beta_{0}$ across experimental conditions. ``all'', ``every 2nd'', ``every 3rd'' denote systematic sampling at every first, every second, and every third measurement occasion, respectively. Results are based on 1000 replications. The black dotted line denotes the population value $\beta_{0} = 0.5$. The colored dot-stripe lines denote the average parameter estimate per experimental condition.}
-    \label{fig:results-scenario1-hats-beta0}
-\end{figure}
-
-In Scenario 2, the data generating mechanism of Scenario 1 is extended with a time-varying covariate $L$ that confounds the lag-0 relationship between $X$ and $Y$. Similarly, the true population value for the lag-0 effect is $\beta_{0} = 0.5$. In contrast to the results of Scenario 1, both time-aggregation and systematic sampling of the variables now introduce a downward bias for the estimated $\beta_{0}$. Looking at conditions with every first observation sampled, the aggregation process appears to introduce a downward bias for estimates of $\beta_{0}$, resulting in an average estimate of 0.062 (MC-SE $= 0.003$) and a coverage rate of 0.007 for the case of aggregation over $m = 3$ periods. A similar downward bias exists for the other two systematic sampling scheme. Similarly, the systematic sampling itself also introduces a downwards bias for estimates $\beta_{0}$. That is, for any given time-aggregation scheme (row), the bias becomes increasingly negative under systematically sampling every second or every third observation. In the experimental condition with time-aggregation across three time-periods and systematically sampling every third measurement occasion, the average estimate of $\beta_{0}$ is even $-0.313$ (MC-SE $= 0.003$) with a coverage rate of zero. A reason for this large negative bias in this scenario might be that the effect of the time-varying confounder $L_{k}$ on the outcome $Y_{k}$ is several overestimated: The average estimate is $1.270$ while the population value is $\gamma_{0} = 0.8$, implying a bias of $0.472$ (MC-SE $= 0.001$). It appears the large negative bias in $\beta_{0}$ might occur as a way to counter the large positive bias of $\gamma_{0}$. See the online supplementary materials for numerical results this parameter across all conditions.  
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{figures/plot_scenario2_hats_beta0.png}
-    \caption{Results Scenario 2: Sampling distribution of the estimated $\beta_{0}$ across experimental conditions.}
-    \label{fig:results-scenario2-hats-beta0}
-\end{figure}
+\subsubsection{3.3.3 Results}
+The average estimate and 95\% coverage rate for the estimates of $\beta_{0{(1)}}$ are presented in Table~\ref{tab:scenario3-results}. Results for the parameters $\phi_{(m)}$ and $\gamma_{(m)}$ can be found Appendix~\ref{app:simulation-scenario3}. First, looking at the results for $\beta_{0{(1)}}$ in the experimental condition with $m = 1$ and sampling every first frame, 
 
 Finally, for Scenario 3, the numerical results can be found in Table~\ref{tab:results-hats-beta0}. These results mirror that of the condition with systematically sampling every third observation in the $m = 3$ aggregated process of Scenario 2. For monthly measurement of variables that have been aggregated over weeks, the average estimate is $-0.299$, implying a bias of $-0.799$ (MC-SE $= 0.002$) with a coverage rate of zero. For the condition with yearly measurements of month-aggregated measurements, the bias is relatively similar. Note how the bias that is induced by the time-aggregation and systematic sampling appears to level off with increasing time-aggregation and time-lags between measurement occasions. That is, while time-aggregation and time-lags do lead to bias, the bias of estimates of $\beta_{0}$ for $m = 30$ (as in Scenario 3) is not much larger than the performance in a condition with $m = 3$ (as in Scenario 2), but is actually rather similar.  
 
-\section{5. Discussion}
-Time-aggregation of measurements and low process coverage due to systematic sampling over time are two very common temporal features of panel data. A specific time-aggregation or systematic sampling scheme in the design of a panel study can be selected for a diverse set of methodological and practical reasons \parencites{dorman_timing_2014}. For example, aggregation is sometimes used as a method for dealing with measurement error \parencite{rushton_behavioral_1983}, and increasing the interval between repeated measures decreases participant burden while still enabling researchers to measure participants over extended periods of time. However, more generally, substantive literature and theories in the social sciences are notoriously uninformative about the time scale at which to measure a process of interest \parencite{collins_analysis_2006}. For this reason, \textcite{collins_analysis_2006, dorman_optimal_2014} and many methodological scientists have stated that decisions about the time scale of a study design are often ``(...) left to intuition, chance, convenience, or tradition.'' \parencite[][p. 533]{mitchell_building_2001}. Similarly, \textcite{collins_effect_2002} expresses concern about the lack of awareness about the impact of temporal design choices on the results of a study: \begin{quote} ``Scientific, theoretical, or conceptual, as opposed to logistical, reasons for the choice of temporal design are rarely mentioned, and equally rare is any discussion of how this choice might have affected the statistical and substantive conclusions drawn from the study.'' \end{quote}. 
-
-The aim of this paper was therefore to explore and demonstrate the impact of time-aggregation and systematic sampling on a researchers ability to estimate effects of a time-varying exposure in an underlying causal process. While the topic of time-aggregation has received some attention in the econometric literature in dynamic models, it has been severely understudied in the social sciences. For relatively simply autoregressive processes such as the AR(1) and ARX(1) with one time-dependent covariate, there exists some analytical work on time-aggregation and systematic sampling. For example, for the AR(1) and ARX(1) models, it can be derived how the autoregressive effect (and effect of the time-dependent predictor in the ARX1) in aggregated data are a function of the parameters governing the disaggregated process \parencite[cf.][]{amemiya_effect_1972, brewer_consequences_1973}. Furthermore, the continuous-time literature describes how parameters of dynamic models change when the time-interval between repeated measures changes (e.g., due to systematic sampling). However, deriving analytically their combined impact for slightly more complex models is challenging \parencite{amemiya_effect_1972, petkovic_aggregation_2009}. We therefore presented simulation results for three different scenarios, including a process with a time-varying exposure and outcome for $N = 1$, a process with time-varying exposure, outcome, and covariate for $N = 1$, and a process with a time-varying exposure, outcome, and covariate for multiple units but limited repeated measures per unit. Our focus has been on the lag-0 causal effect of $X$ on $Y$. This effect is of interest for situations where the time interval is large but the causal effect under study is relatively rapid, or when there is an implicit time-lag in the measurements of variables \parencite[e.g., the exposure refers to something that happened \textit{the past week} and the outcome relates to something \textit{at the moment of measurement}/``right now'';][]{muthen_can_2024, mundlak_aggregation_1961}. 
-
-Generally, a mismatch between the temporal characteristics of a causal process and the time-scale of the observed data due to time-aggregation or systematic sampling leads to a bias in estimates of $\beta_{0}$. For the systematic sampling, bias in estimates of $\beta_{0}$ occurs because unmeasured intermitted variables act as unobserved time-varying confounders that researchers cannot adjust for. For time-aggregation, the bias occurs because time-aggregation changes the nature of the process itself \parencite{amemiya_effect_1972}. The direction and size of the bias, however, is very much dependent on the underlying causal process: We observed a moderately strong upwards bias for Scenario 1 (i.e., without time-varying covariate) but a strong negative bias for Scenarios 2 and 3. In Scenario 3, the situation that mirrors that of panel data on a daily process, the mismatch of time scales was so sever that it resulted in an average estimated lag-0 effect of $X$ to $Y$ of -0.299 with a coverage rate of 0, while the true population effect was 0.5. 
-
-\subsection{5.1 Implications and Limitations}
-This paper demonstrates, in line with previous researchers on this topic, the enormous importance of making time scales a central aspect of of theories. Without specificity about the time frame of ones variables and the speed at which concepts under study change, it is not possible to make an informed decision about how to setup a new study, nor is it possible to evaluate if an existing dataset contains the information needed to answer a research question. This is by no means a new insight, but we do hope that these simulations once again underline the important of this point \parencite[cf.][]{hamaker_within-between_2023, mitchell_building_2001, dorman_temporal_2014, dorman_optimal_2015}.
-
-One of the limitations of this paper is that in our simulations we assume that there exists a true underlying discrete-time process. For our motivating example, we asssumed the social media-stres process manifests itself from day-to-day. This decision is of course arbitrary, and one can argue that t. In fact, many processes are assumed to be continuous time process, for which the conept of a ``true'' or ``natural'' time interval is not applicable \parencite{dorman_optimal_2015}. 
-
-The natural period intervals at which the process plays out is known: In our simulations, it is assumed to be hours. However, in practice, this is unknown and the interval between observations is commonly driven by practical considerations, rather than theoretical concerns. 
-
-
-A second implication is that for fast-changing time-varying exposures (i.e., fast in relation to the time interval between repeated measurements), it not recommended to ask pariticpants to aggregate. 
-
-A limitation in this respect is 
-
-A third limitation is that we do not focus on lag-1 relationships here. 
-
-
-
-\subsection{5.2 Future research}
-The collection or use of panel data without a theoretical motivation about the time scale at which the causal process of interest plays out has a high risk biased results following analyses. A future research question is if such bias can be (partly) remedied with smarter researcher design or analyses. One area of interest in this regards is continuous-time modeling in combination with panel data that have been collected at varying time-intervals. 
-
-\textcite{dorman_optimal_2015} already recommend to use varying time lags between repeated measures in the design of panel studies. They do so for a different reason, that is, for copmuting at which time lag the cross-lagged effect of $X$ to subsequent $Y$ is the biggest. However, this might also be a recommendable step considering the no unmeasured confounding assumption. For example, consider the case of Scenario 2 for 
+ \begin{table}[]
+    \centering
+    \footnotesize
+    \begin{tabular}[t]{cccc}
+        \toprule
+        $m$ & Every & Bias (MC-SE) & Coverage\\
+        \midrule
+        1 & 1 & 0.498 (0.002) & 0.926\\
+        7 & 4 & -0.301 (0.002) & 0.000\\
+        7 & 102 & -0.299 (0.002) & 0.000\\
+        30 & 12 & -0.208 (0.002) & 0.000\\
+        365 & 1 & -0.177 (0.002) & 0.000\\
+        \bottomrule
+    \end{tabular}
+    \caption{Average estimate and 95\% confidence interval coverage rate (including Monte Carlo standard errors) for estimates $\beta_{0}$ across experimental conditions in Scenario 3.}
+    \label{tab:scenario3-results}
+\end{table}
 
 
 
 
+\section{4. Discussion}
+Time-aggregation of measurements and low process coverage due to systematic sampling over time are two very common temporal features of panel data. A specific time-aggregation or systematic sampling scheme can be selected in the design of a longitudinal study for a diverse set of methodological and practical reasons \parencites{dollard_timing_2014}. For example, aggregation is sometimes used as a method for dealing with measurement error \parencite{rushton_behavioral_1983} and increasing the interval between repeated measures decreases participant burden while still enabling researchers to measure participants over extended periods of time. HIER OOK VERWIJZEN NAAR JANSSENS\_QUALITATIVE\_2018However, more generally, substantive literature and theories in the social sciences are notoriously uninformative about the time scale at which to measure a process of interest \parencite{collins_analysis_2006, dormann_optimal_2015}. For this reason, \textcite[p. 533]{mitchell_building_2001} have stated that decisions about the time scale of a study design are often ``(...) left to intuition, chance, convenience, or tradition''. Similarly, \textcite[p. S85]{collins_effect_2002} express concern about the lack of awareness about the impact of temporal design choices on the results of a study: \begin{quote} ``Scientific, theoretical, or conceptual, as opposed to logistical, reasons for the choice of temporal design are rarely mentioned, and equally rare is any discussion of how this choice might have affected the statistical and substantive conclusions drawn from the study.'' \end{quote}
+
+The aim of this paper was therefore to explore and demonstrate the impact of time-aggregation and systematic sampling on a researchers ability to STUDY THE CAUSAL MECHANISM THAT UNDERLIES A PARTICULAR ERLATIONSHIP OF INTEREST. More psecifically,
 
 
-\subsection{5.3 Conclusion}
+identify and estimate the underlying effects of a time-varying exposure from panel data. While the topic of time-aggregation has received some attention in the econometric literature for dynamic models, it has been severely understudied in the social sciences. For relatively simple autoregressive processes such as the AR(1) and ARX(1) with one time-dependent covariate, there exists some analytical work on time-aggregation and systematic sampling. For example, it can be analytically derived how the autoregressive effect of a stationary disaggregated AR(1) process and the autoregressive effect and the effect of the time-dependent predictor of a disaggregated ARX(1) process are related to the parameters that can be obtained from aggregated data \parencite[cf.][]{amemiya_effect_1972, brewer_consequences_1973}. Furthermore, in the time-series literature it is well-described how parameters of dynamic models change when the time-interval between repeated measures changes \parencite[e.g., due to systematic sampling][]{}. However, deriving analytically their combined impact for slightly more complex models is challenging \parencite{amemiya_effect_1972, petkovic_aggregation_2009}. We therefore presented simulation results for three different scenarios, including a process with a time-varying exposure and outcome for $N = 1$, a process with time-varying exposure, outcome, and covariate for $N = 1$, and a process with a time-varying exposure, outcome, and covariate for multiple units but few repeated measures per unit. Our focus has been on the lag-0 causal effect of $X$ on $Y$, $\beta_{0_{(1)}}$. This effect is of interest for situations where the time interval is large but the causal effect under study is relatively rapid, or when there is an implicit time-lag in the measurements of variables \parencite[e.g., the exposure refers to something that happened \textit{the past week} and the outcome relates to something \textit{at the moment of measurement}/``right now'';][]{muthen_can_2024, mundlak_aggregation_1961}. 
+
+THIS IS NOTHING NEW, VOELKLE\_ROLE\_2018 also discuss how reseracher ca narrive at different conclusoisn depending on the different dtaa collection designs. They state that discrete tiem analysis has its place in the case of euqally spaced measurements occasions iwth aahigh sampling frequency. In this paper, we demonstrate what can go wrong when this is mismatched. 
+
+We have shown that a mismatch between the temporal characteristics of a causal process and the time-scale of the observed data due to time-aggregation or systematic sampling over time leads to a bias in estimates of $\beta_{0}$. Bias in estimates of $\beta_{0}$ occurs as a result of systematic sampling because the intermitted variables act as unobserved time-varying confounders. That is, under the systematic sampling schemes of Scenarios 1, 2, and 3 the observed data do not contain information about variables that confound the lag-0 effect, and hence this effect is unidentified. For time-aggregation, the bias occurs because time-aggregation changes the nature of the process itself \parencite{amemiya_effect_1972}. For example, aggregation of an AR(1) process over $m = 3$ time periods results in an ARMA process with moving average components from the three time points between measurement occasion $k$ and $k - m$. An AR(1) model would thus be misspecified for aggregated data leading to biased parameter estimates. It is also not possible to fit an appropriate ARMA model as no information is available in the aggregated data about the time points between the measurement occasion $k$ and $k - m$. Again, the effect $\beta_{0}$ is unidentified in the data. The simulation study showed that the direction and size of the bias, however, is very much dependent on the underlying causal process: We observed a moderately strong upwards bias for Scenario 1 (i.e., without time-varying covariate) but a strong negative bias for Scenarios 2 and 3. Scenario 3 represents a situation in which panel data is used to study a daily process. The mismatch of time scales was so sever that it resulted in an average estimated lag-0 effect of $X$ to $Y$ of -0.299 with a coverage rate of 0, while the true population effect was 0.5. 
+
+\subsection{5.1 Implications}
+In line with many previous methodological researchers on this topic, this paper demonstrates the fundamental importance of making time scales a central aspect of substantive theories \parencite[cf.][]{hamaker_within-between_2023, mitchell_building_2001, dormann_optimal_2015, collins_effect_2002}. While this point has been made predominantly when the interest was in identifying lag-1 cross-lagged effects in panel data or mediation analysis using SEM, this paper shows that it is at least equally important when the interest is in lag-0 causal effects. Without specificity of the temporal characteristics of a causal process, it is not possible to make an informed decision about how to optimally design an new panel study, nor is it possible to evaluate if an existing dataset contains the information needed to answer a research question. For this reason, \textcite{collins_analysis_2006} argues that peer-review journals should request substantive researchers to provide a justification grounded in theoretical arguments for the time scale that was used in a study, and suggests that this is a necessary step for gaining insight into why particular findings in the literature fail to replicate. We agree with this argument. THE EFFECT OF X ON Y DOES NOT EXIST. ONLY ONCE WE HAVE LINKED OUR QUESITON TO A TIME FRAME CAN WE GO ABOUT THINKIN HOW TO STUDY THIS EFFECT. OR, AS VOELKLE\_ROLE\_2018 STATES IT: "WITHOUT CONSIDERING TIEM, THE SUTDY OF PSCYHOLGOCIAL MEHCANISAM IS IMPOSSIBLE. 
+
+
+
+A second implication is that for fast-changing time-varying exposures (i.e., fast in relation to the time interval between repeated measurements) it not recommended to ask participants to aggregate their values. The problem is that in the process of aggregation, information about the disaggregated process is lost, preventing researchers from identifying and estimating effects about the process at the disaggregated level.  NEED TO THINK ABOUT THIS MORE. 
+
+\subsection{5.2 Limitations}
+Our paper is based on the assumption that there exists a ``true'' underlying discrete-time process. For our motivating example, we assumed the social media-anxiety process manifests itself from day-to-day. This decision is of course arbitrary and the exact intervals at which the process operates is unknown. In fact, many processes are assumed to be continuous-time process, for which the concept of a ``true'' or ``natural'' time-interval is not applicable \parencite{dormann_optimal_2015}. 
+
+Another limitation is that this papers the results of this simulation study are confined to the case of lag-0 effects. For lag-1 effects, the impact of time-aggregation and systamatic sampling might be different. For ... 
+
+
+
+\subsection{5.3 Future research}
+The collection or use of panel data without a theoretical motivation about the time scale at which the causal process of interest plays out has a high risk of biased results following analyses. A future research question is if such bias can be (partly) remedied with smarter research design or analyses. One area of interest in this regards is continuous-time modeling in combination with panel data that have been collected at varying time-intervals. \textcite{dormann_optimal_2015} already recommend to use varying time lags between repeated measures in the design of panel studies. They do so for a different reason, that is, for computing the time lag at which the cross-lagged effect of $X$ to subsequent $Y$ is the biggest. However, this might also be a recommendable step considering the issue of unmeasured intermitted variables as a result of systematic sampling and which confound the lag-0 effect $\beta_{0}$. In a research design with varying time lags, researchers can attempt to capture such intermitted variables in their sample. The continues-time framework might then allow researchers to take the varying time lags into account and adjust for the confounding effect of intermitted time-varying confounders. However, the continuous-time framework is not commonly used in the context of confounder adjustment, and future research is needed to evaluate how well such an approach might work. 
+
+ALSO, WHILE AGGREGATED DATA MIGHT NOT BE INFORMATIVE FOR INVESTIGATING AN UNDERLYING CUASAL MECHANISM, IT CAN BE USEFUL FOR OTHER TYPES OF CUASAL QUESTIONS (I.E., FOR OTHER ESTIMANDS). FOR EXAMPLE, QUESTIONS AOBUT TREATMENT REGIMES. CAUSAL QUESOITN ARE NOT ASKED IN TERMS OF PARAMETERS, BUT RATHER AS CONTRASTS OF POTENTIAL OUTCOMES. 
+
+\subsection{5.4 Conclusion}
+
+
 
 \printbibliography
+
+\appendix
+
+\section{Simulation Study: Additional Results} \label{app:simulation}
+
+
+\subsection{Scenario 1} \label{app:simulation-scenario1}
+Numerical results for the estimated autoregressive effect across the experimental conditions in Scenario 1 are presented in Table~\ref{tab:scenario1-results}. The column $\phi^{d}$ denotes what the expected autoregressive effect is when sampling every $d$th measurement occasion (i.e., the lag-$d$ effect). The coverage results for the estimates are computed based on $\phi^{d}$.
+
+ \begin{table}[]
+    \centering
+    \footnotesize
+    \begin{tabular}[t]{ccccc}
+        \toprule
+        $m$ & Every & $phi^{d}$ & Avg. (MC-SE) & Cover. (MC-SE)\\
+        \midrule
+        1 & 1 & 0.500 & 0.497 (0.001) & 0.948 (0.007)\\
+        1 & 2 & 0.250 & 0.253 (0.001) & 0.952 (0.007)\\
+        1 & 3 & 0.125 & 0.128 (0.001) & 0.957 (0.006)\\
+        1 & 5 & 0.062 & 0.03 (0.001) & 0.813 (0.012)\\
+        1 & 10 & 0.031 & -0.002 (0.001) & 0.812 (0.012)\\
+        \addlinespace
+        2 & 1 & 0.500 & 0.371 (0.001) & 0.001 (0.001)\\
+        2 & 2 & 0.250 & 0.097 (0.001) & 0 (0)\\
+        2 & 3 & 0.125 & 0.021 (0.001) & 0.077 (0.008)\\
+        2 & 5 & 0.062 & 0 (0.001) & 0.456 (0.016)\\
+        2 & 10 & 0.031 & -0.002 (0.001) & 0.796 (0.013)\\
+        \addlinespace
+        3 & 1 & 0.500 & 0.275 (0.001) & 0 (0)\\
+        3 & 2 & 0.250 & 0.034 (0.001) & 0 (0)\\
+        3 & 3 & 0.125 & 0.003 (0.001) & 0.022 (0.005)\\
+        3 & 5 & 0.062 & -0.001 (0.001) & 0.451 (0.016)\\
+        3 & 10 & 0.031 & -0.003 (0.001) & 0.806 (0.013)\\
+        \addlinespace
+        5 & 1 & 0.500 & 0.166 (0.001) & 0 (0)\\
+        5 & 2 & 0.250 & 0.003 (0.001) & 0 (0)\\
+        5 & 3 & 0.125 & -0.003 (0.001) & 0.017 (0.004)\\
+        5 & 5 & 0.062 & -0.003 (0.001) & 0.418 (0.016)\\
+        5 & 10 & 0.031 & -0.002 (0.001) & 0.801 (0.013)\\
+        \addlinespace
+        10 & 1 & 0.500 & 0.074 (0.001) & 0 (0)\\
+        10 & 2 & 0.250 & -0.003 (0.001) & 0 (0)\\
+        10 & 3 & 0.125 & -0.002 (0.001) & 0.015 (0.004)\\
+        10 & 5 & 0.062 & -0.002 (0.001) & 0.458 (0.016)\\
+        10 & 10 & 0.031 & -0.002 (0.001) & 0.798 (0.013)\\
+        \bottomrule
+    \end{tabular}
+    \caption{Average estimate and 95\% confidence interval coverage rate (including Monte Carlo standard errors) for estimates of the autoregressive effect $\phi$ across experimental conditions. $\phi^{d}$ is the expected autoregressive effect based on systematic sampling scheme (``Every'', $d$) in an experimental condition. Coverage is computed based on $\phi^{d}$.}
+    \label{tab:scenario1-appendix}
+\end{table}
+
+\subsection{Scenario 2} \label{app:simulation-scenario2}
+Numerical results for the estimated autoregressive effect across the experimental conditions in Scenario 1 are presented in Table~\ref{tab:scenario1-results}. 
+
+ \begin{table}[]
+    \centering
+    \footnotesize
+    \begin{tabular}{cccccccc}
+        \toprule
+            &       & \multicolumn{3}{c}{$\phi$} & & \multicolumn{2}{c}{$\gamma$} \\
+        \cmidrule(lr){3-5} \cmidrule(lr){7-8}
+        $m$ & Every & $\phi^{d}$ & Avg. (MC-SE) & Coverage & & Avg. (MC-SE) & Coverage\\
+        \midrule
+        1 & 1 & 0.500 & 0.5 (0.001) & 0.940 & & 0.798 (0.001) & 0.933\\
+        1 & 2 & 0.250 & 0.289 (0.001) & 0.561 & & 0.996 (0.001) & 0.000\\
+        1 & 3 & 0.125 & 0.159 (0.001) & 0.667 & & 1.054 (0.001) & 0.000\\
+        1 & 5 & 0.062 & 0.042 (0.001) & 0.855 & & 1.075 (0.001) & 0.000\\
+        1 & 10 & 0.031 & 0 (0.001) & 0.728 & & 1.079 (0.001) & 0.000\\
+        \addlinespace
+        2 & 1 & 0.500 & 0.351 (0.001) & 0.000 & & 1.061 (0.001) & 0.000\\
+        2 & 2 & 0.250 & 0.102 (0.001) & 0.000 & & 1.191 (0.001) & 0.000\\
+        2 & 3 & 0.125 & 0.022 (0.001) & 0.001 & & 1.203 (0.001) & 0.000\\
+        2 & 5 & 0.062 & 0 (0.001) & 0.150 & & 1.204 (0.001) & 0.000\\
+        2 & 10 & 0.031 & 0 (0.001) & 0.701 & & 1.203 (0.001) & 0.000\\
+        \addlinespace
+        3 & 1 & 0.500 & 0.244 (0.001) & 0.000 & & 1.206 (0.001) & 0.000\\
+        3 & 2 & 0.250 & 0.031 (0.001) & 0.000 & & 1.272 (0.001) & 0.000\\
+        3 & 3 & 0.125 & 0.003 (0.001) & 0.000 & & 1.274 (0.001) & 0.000\\
+        3 & 5 & 0.062 & 0.001 (0.001) & 0.134 & & 1.274 (0.001) & 0.000\\
+        3 & 10 & 0.031 & 0 (0.001) & 0.657 & & 1.274 (0.001) & 0.000\\
+        \addlinespace
+        5 & 1 & 0.500 & 0.129 (0.001) & 0.000 & & 1.336 (0.001) & 0.000\\
+        5 & 2 & 0.250 & 0.002 (0.001) & 0.000 & & 1.356 (0.001) & 0.000\\
+        5 & 3 & 0.125 & 0.001 (0.001) & 0.000 & & 1.354 (0.001) & 0.000\\
+        5 & 5 & 0.062 & 0 (0.001) & 0.084 & & 1.357 (0.001) & 0.000\\
+        5 & 10 & 0.031 & 0.001 (0.001) & 0.634 & & 1.352 (0.001) & 0.000\\
+        \addlinespace
+        10 & 1 & 0.500 & 0.051 (0.001) & 0.000 & & 1.427 (0.001) & 0.000\\
+        10 & 2 & 0.250 & 0.001 (0.001) & 0.000 & & 1.427 (0.001) & 0.000\\
+        10 & 3 & 0.125 & 0 (0.001) & 0.000 & & 1.428 (0.001) & 0.000\\
+        10 & 5 & 0.062 & 0 (0.001) & 0.052 & & 1.429 (0.001) & 0.000\\
+        10 & 10 & 0.031 & 0 (0.001) & 0.565 & & 1.429 (0.001) & 0.000\\
+        \bottomrule
+    \end{tabular}
+    \caption{Average estimate and 95\% confidence interval coverage rate (including Monte Carlo standard errors) for estimates of the autoregressive effect $\phi$ and time-varying covariate effect $\gamma$ across experimental conditions. $\phi^{d}$ is the expected autoregressive effect based on systematic sampling scheme (``Every'', $d$) in an experimental condition. Coverage for $\phi$ is computed based on $\phi^{d}$. Coverage for $\gamma$ is based on $\gamma_{(1)} = 0.8$.}
+    \label{tab:scenario2-appendix}
+\end{table}
+
+\subsection{Scenario 3}
 
 
 \end{document}
