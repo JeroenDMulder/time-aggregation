@@ -1,0 +1,797 @@
+---
+title: "R code for Simulation Study of Mulder, Voelkle, and Hamaker (under review)"
+author: "Jeroen D. Mulder"
+date: "2025-01-21"
+---
+
+This .Rmd-file is part of the online supplementary materials of Mulder, Voelkle, and Hamaker (under review). It contains the R code that was used for the simulation study of the main paper. 
+
+```{r setup}
+# C++
+library(Rcpp)
+library(RcppArmadillo)
+
+# Data wrangling
+library(dplyr)
+library(tibble)
+library(tidyr)
+library(furrr)
+library(purrr)
+library(progressr)
+
+# Analysis
+library(lavaan)
+library(MplusAutomation)
+library(expm)
+library(furrr)
+
+# Visualization
+library(patchwork)
+library(ggplot2)
+
+# Import functions
+source("./R/data_generation.R")
+Rcpp::sourceCpp("./R/data_generation_endogenous.cpp")
+source("./R/estimation_Mplus.R")
+```
+
+# Scenario 1
+
+```{r scenario1-parameters}
+# Parameters: Exposure (Markov chain)
+QTransProb <- compute_transProbs_logistic(
+  beta10_0 = -2, beta10_1 = 0, beta10_2 = 0, 
+  beta01_0 = 0, beta01_1 = 0, beta01_2 = 0, 
+  Y = 0, L = 0
+)
+QTransProb
+
+beta0 <- matrix(c(.5), ncol = 1)
+phi <- matrix(c(.5), ncol = 1)
+
+# Simulation factors
+sample_size <- 1
+burnin <- 200
+n_replications <- 1000
+k_time_points <- 1000
+```
+
+
+```{r scenario1-simulation, eval = TRUE}
+m <- c(1, 2, 3, 5, 10)
+everyth <- c(1, 2, 3, 5, 10)
+
+# Create data frame with experimental conditions
+conditions_scenario1 <- expand.grid(
+  m = m,
+  everyth = everyth
+) %>%
+  mutate(n_time_points = m * everyth * k_time_points)
+
+# Convert data frame to list of lists and add `datasets` element
+conditions_scenario1 <- conditions_scenario1 %>%
+  split(seq(nrow(.))) %>%
+  map(~ {
+    inner_list <- as.list(.x)
+    inner_list$datasets <- vector("list", n_replications) # Create empty list of length `n_time_points`
+    inner_list
+  })
+
+set.seed(123456)
+
+# Create datasets per experimental condition
+conditions_scenario1 <- map(
+  .x = conditions_scenario1,
+  .f = function(condition) {
+    condition$datasets <- map(
+      .x = 1:n_replications,
+      ~ generate_data_V3(
+          sample_size = 1, 
+          n_time_points = condition$n_time_points, 
+          m = condition$m,
+          everyth_frame = condition$everyth,
+          burnin = 200,
+          phi = phi, # Autoregressive parameter
+          beta0 = matrix(c(0.5), nrow = 1), # Effect time-dependent predictor X
+          sigma2Eta = matrix(c(1)), 
+          sigma2L = matrix(c(0)),
+          lambda = c(1), 
+          tau = 0, 
+          thetaY = 0, 
+          beta10_0 = -2,
+          beta10_1 = 0,
+          beta10_2 = 0,
+          beta01_0 = 0,
+          beta01_1 = 0, 
+          beta01_2 = 0,
+          gamma = 0,
+          alpha = 0, 
+          preprocess = TRUE
+        )
+    )
+    return(condition)
+  }
+)
+
+plan(multisession, workers = 5)
+
+# Export .dat for analysis in Mplus
+future_walk(
+  .x = conditions_scenario1, 
+  .f = function(condition) {
+    walk2(
+      .x = condition$datasets, 
+      .y = 1:n_replications,
+      .f = function(dataset, replication_index) {
+        write.table(
+          x = dataset,
+          file = paste0(
+            ".\\simulations\\scenario1\\scen1_m", 
+            condition$m, "_every", condition$everyth, "_df", replication_index, ".dat"
+          ),
+          sep = "\t",
+          col.names = FALSE,
+          row.names = FALSE,
+          na = "-999"
+        )
+      }
+    )
+  }
+)
+
+plan(sequential)
+
+# Create list of exported .dat-files
+walk(
+  .x = conditions_scenario1,
+  .f = function(condition) {
+    write.table(
+      x = paste0(
+        "scen1_m", condition$m, "_every", condition$everyth, "_df", 1:n_replications, ".dat"
+      ), 
+      file = paste0(
+        ".\\simulations\\scenario1\\dfList_m",
+        condition$m, "_every", condition$everyth, ".dat"
+      ),
+      sep = "\n",
+      col.names = FALSE,
+      row.names = FALSE,
+      quote = FALSE
+    )
+  }
+)
+
+# Run all analyses in Mplus
+MplusAutomation::runModels("./simulations/scenario1", quiet = FALSE)
+
+# Create space for reading in results
+results_scenario1 <-  expand.grid(
+  m = m,
+  everyth = everyth
+) %>%
+  split(seq(nrow(.))) %>%
+  map(~ {
+    inner_list <- as.list(.x)
+    inner_list$result <- vector("list") # Create empty list of length `n_time_points`
+    inner_list
+  })
+
+# Read in results
+results_scenario1 <- map(
+  .x = results_scenario1,
+  .f = function(condition) {
+    condition$result <- extract_results_Mplus_ARX1(
+      paste0("./simulations/scenario1/results_m", condition[["m"]], "_every", condition[["everyth"]], ".dat")
+    ) %>%
+      mutate(m = as.factor(condition$m), everyth = as.factor(condition$everyth)) 
+    return(as.data.frame(condition$result))
+  }
+) %>%
+  list_rbind() %>%
+  mutate(
+    lb_beta0 = hat_beta_Y_X - 1.96*SE_beta_Y_X, 
+    ub_beta0 = hat_beta_Y_X + 1.96*SE_beta_Y_X, 
+    lb_phi = hat_beta_Y_Y - 1.96*SE_beta_Y_Y,
+    ub_phi = hat_beta_Y_Y + 1.96*SE_beta_Y_Y, 
+    phi_d = 0.5^as.numeric(everyth)
+  ) %>%
+  rowwise() %>%
+  mutate(
+    covered_beta0 = lb_beta0 < 0.5 && ub_beta0 > 0.5, 
+    covered_phi = lb_phi < phi_d && ub_phi > phi_d
+  )
+
+# Summarize results
+summary_scenario1 <- results_scenario1 |> 
+    group_by(m, everyth) |>
+  summarise(
+    avg_beta0 = mean(hat_beta_Y_X),
+    bias_beta0 = mean(hat_beta_Y_X - 0.5), 
+    MCSE_bias_beta0 = sqrt((1 / (n_replications * (n_replications - 1))) * sum((hat_beta_Y_X - avg_beta0)^2)),
+    sd_beta0 = sd(hat_beta_Y_X),
+    cover_beta0 = sum(covered_beta0) / n_replications,
+    MCSE_cover_beta0 = sqrt( (cover_beta0 * (1 - cover_beta0)) / n_replications),
+    avg_phi = mean(hat_beta_Y_Y),
+    bias_phi = mean(hat_beta_Y_Y - phi_d), 
+    MCSE_bias_phi = sqrt((1 / (n_replications * (n_replications - 1))) * sum((hat_beta_Y_Y - avg_phi)^2)),
+    cover_phi = sum(covered_phi) / n_replications,
+    MCSE_cover_phi = sqrt( (cover_phi * (1 - cover_phi)) / n_replications)
+  ) |>
+  mutate(phi_d = 0.5^as.numeric(everyth))
+
+# Visualize results
+plot_scenario1_hats_beta0 <- results_scenario1 |>
+  merge(summary_scenario1, by = c("m", "everyth")) |>
+  mutate(
+    m_annotated = factor(m, labels = c("m = 1", "m = 2", "m = 3", "m = 5", "m = 10")),
+    everyth_annotated = factor(everyth, labels = c("1st", "2nd", "3rd", "5th", "10th"))
+  ) |> 
+  ggplot(aes(x = hat_beta_Y_X, color = m)) + 
+  geom_density() + 
+  geom_segment(
+    mapping = aes(x = avg_beta0, xend = avg_beta0, y = 0.7, yend = 6),
+    linetype = 4,
+    linewidth = 1
+  ) +
+  geom_vline(xintercept = c(0.5), linetype = 3, linewidth = 1.5) + 
+  geom_text(
+    mapping = aes(x = avg_beta0, y = 0.5, label = round(avg_beta0, 2)),
+    color = "black", vjust = 1, hjust = 0.5, size = 4
+  ) + 
+  xlab(expression(hat(beta)[0])) + 
+  xlim(c(0.25, 1.10)) +
+  facet_grid(vars(m_annotated), vars(everyth_annotated)) +
+  theme_classic() + 
+  theme(
+    legend.position = "none",
+    legend.title = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    text = element_text(size = 18)
+  )
+ggsave("./figures/plot_scenario1_hats_beta0.png", plot_scenario1_hats_beta0, width = 10, height = 10)
+
+# Export to LaTeX table: Appendix
+summary_scenario1 |>
+  select(m, everyth, phi_d, avg_phi, MCSE_bias_phi, cover_phi, MCSE_cover_phi) |>
+    mutate(
+      across(
+        c(phi_d, avg_phi, MCSE_bias_phi, cover_phi, MCSE_cover_phi),
+        ~ round(.x, 3)
+      )
+    ) |>
+  rowwise() |>
+  mutate(
+    avgMCSE_phi = paste0(avg_phi, " (", MCSE_bias_phi, ")"),
+    coverMCSE_phi = paste0(cover_phi, " (", MCSE_cover_phi, ")")
+  ) |>
+  ungroup() |> 
+  select(m, everyth, phi_d, avgMCSE_phi, coverMCSE_phi) |>
+  kbl(
+    format = "latex", 
+    booktabs = TRUE,
+    col.names = c("$m$", "Every", "phi_d", "Avg. (MC-SE)", "Cover. (MC-SE)")
+  )
+```
+
+
+# Scenario 2
+
+```{r scenario2-parameters}
+# Parameters: Exposure (Markov chain)
+QTransProb <- compute_transProbs_logistic(
+  beta10_0 = -2, beta10_1 = -0.5, beta10_2 = 1, 
+  beta01_0 = 0, beta01_1 = 1, beta01_2 = 1, 
+  Y = 0, L = 1
+)
+QTransProb
+
+beta0 <- matrix(c(.5), ncol = 1)
+phi <- matrix(c(.5), ncol = 1)
+
+# Simulation factors
+sample_size <- 1
+burnin <- 200
+n_replications <- 1000
+k_time_points <- 1000
+
+```
+
+
+```{r scenario2}
+# Create data frame with experimental conditions
+conditions_scenario2 <- expand.grid(
+  m = m,
+  everyth = everyth
+) %>%
+  mutate(n_time_points = m * everyth * k_time_points)
+
+# Convert data frame to list of lists and add `datasets` element
+conditions_scenario2 <- conditions_scenario2 %>%
+  split(seq(nrow(.))) %>%
+  map(~ {
+    inner_list <- as.list(.x)
+    inner_list$datasets <- vector("list", n_replications) # Create empty list of length `n_time_points`
+    inner_list
+  })
+
+set.seed(123456)
+
+# Create datasets per experimental condition
+conditions_scenario2 <- map(
+  .x = conditions_scenario2,
+  .f = function(condition) {
+    condition$datasets <- map(
+      .x = 1:n_replications,
+      ~ generate_data_V3(
+          sample_size = 1, 
+          n_time_points = condition$n_time_points, 
+          m = condition$m, 
+          everyth_frame = condition$everyth,
+          burnin = 200,
+          phi = phi, # Autoregressive parameter
+          beta0 = matrix(c(0.5), nrow = 1), # Effect time-dependent predictor X
+          sigma2Eta = matrix(c(1)), 
+          sigma2L = matrix(c(1)),
+          lambda = c(1), 
+          tau = 0, 
+          thetaY = 0, 
+          beta10_0 = -2,
+          beta10_1 = -0.5,
+          beta10_2 = 1,
+          beta01_0 = 0,
+          beta01_1 = 1, 
+          beta01_2 = 1,
+          gamma = 0.8,
+          alpha = 0.5, 
+          preprocess = TRUE
+      )
+    )
+    return(condition)
+  }
+)
+
+plan(multisession, workers = 4)
+
+# Export .dat for analysis in Mplus
+future_walk(
+  .x = conditions_scenario2, 
+  .f = function(condition) {
+    walk2(
+      .x = condition$datasets, 
+      .y = 1:n_replications,
+      .f = function(dataset, replication_index) {
+        write.table(
+          x = dataset,
+          file = paste0(
+            ".\\simulations\\scenario2\\scen2_m", 
+            condition$m, "_every", condition$everyth, "_df", replication_index, ".dat"
+          ),
+          sep = "\t",
+          col.names = FALSE,
+          row.names = FALSE,
+          na = "-999"
+        )
+      }
+    )
+  }
+)
+plan(sequential)
+
+# Create list of exported .dat-files
+walk(
+  .x = conditions_scenario2,
+  .f = function(condition) {
+    write.table(
+      x = paste0(
+        "scen2_m", condition$m, "_every", condition$everyth, "_df", 1:n_replications, ".dat"
+      ), 
+      file = paste0(
+        ".\\simulations\\scenario2\\dfList_m",
+        condition$m, "_every", condition$everyth, ".dat"
+      ),
+      sep = "\n",
+      col.names = FALSE,
+      row.names = FALSE,
+      quote = FALSE
+    )
+  }
+)
+
+# Run all analyses in Mplus
+MplusAutomation::runModels("./simulations/scenario2", quiet = FALSE)
+
+# Create space for reading in results
+results_scenario2 <-  expand.grid(
+  m = m,
+  everyth = everyth
+) %>%
+  split(seq(nrow(.))) %>%
+  map(~ {
+    inner_list <- as.list(.x)
+    inner_list$result <- vector("list") # Create empty list of length `n_time_points`
+    inner_list
+  })
+
+# Read in results
+results_scenario2 <- map(
+  .x = results_scenario2,
+  .f = function(condition) {
+    condition$result <- extract_results_Mplus_VAR1(
+      paste0("./simulations/scenario2/results_m", condition[["m"]], "_every", condition[["everyth"]], ".dat")
+    ) %>%
+      mutate(m = as.factor(condition$m), everyth = as.factor(condition$everyth)) 
+    return(as.data.frame(condition$result))
+  }
+) %>%
+  list_rbind() %>%
+  mutate(
+    lb_beta0 = hat_beta_Y_X - 1.96*SE_beta_Y_X, 
+    ub_beta0 = hat_beta_Y_X + 1.96*SE_beta_Y_X,
+    lb_phi = hat_beta_Y_Y - 1.96*SE_beta_Y_Y,
+    ub_phi = hat_beta_Y_Y + 1.96*SE_beta_Y_Y, 
+    phi_d = 0.5^as.numeric(everyth), 
+    lb_gamma = hat_beta_Y_L - 1.96*SE_beta_Y_L,
+    ub_gamma = hat_beta_Y_L + 1.96*SE_beta_Y_L
+  ) %>%
+  rowwise() %>%
+  mutate(
+    covered_beta0 = lb_beta0 < 0.5 && ub_beta0 > 0.5, 
+    covered_phi = lb_phi < phi_d && ub_phi > phi_d, 
+    covered_gamma = lb_gamma < 0.8 && ub_gamma > 0.8
+  )
+
+# Summarize results
+summary_scenario2 <- results_scenario2 |> 
+    group_by(m, everyth) |>
+  summarise(
+    avg_beta0 = mean(hat_beta_Y_X),
+    bias_beta0 = mean(hat_beta_Y_X - 0.5), 
+    MCSE_bias_beta0 = sqrt((1 / (n_replications * (n_replications - 1))) * sum((hat_beta_Y_X - avg_beta0)^2)),
+    sd_beta0 = sd(hat_beta_Y_X),
+    cover_beta0 = sum(covered_beta0) / n_replications,
+    MCSE_cover_beta0 = sqrt( (cover_beta0 * (1 - cover_beta0)) / n_replications),
+    avg_phi = mean(hat_beta_Y_Y),
+    bias_phi = mean(hat_beta_Y_Y - 0.5), 
+    MCSE_bias_phi = sqrt((1 / (n_replications * (n_replications - 1))) * sum((hat_beta_Y_Y - avg_phi)^2)), 
+    cover_phi = sum(covered_phi) / n_replications,
+    MCSE_cover_phi = sqrt( (cover_phi * (1 - cover_phi)) / n_replications),
+    avg_gamma = mean(hat_beta_Y_L), 
+    bias_gamma = mean(hat_beta_Y_L - 0.8), 
+    MCSE_bias_gamma = sqrt((1 / (n_replications * (n_replications - 1))) * sum((hat_beta_Y_L - avg_gamma)^2)),
+    cover_gamma = sum(covered_gamma) / n_replications,
+    MCSE_cover_gamma = sqrt( (cover_gamma * (1 - cover_gamma)) / n_replications)
+  ) |> 
+  mutate(phi_d = 0.5^as.numeric(everyth))
+
+# Combine results of scenario 1 and 2
+summary_combined <- summary_scenario1 |> 
+  ungroup() |> 
+  full_join(summary_scenario2, by = c("m", "everyth")) |> 
+  select(
+    m, everyth,
+    avg_beta0.x, MCSE_bias_beta0.x, cover_beta0.x, MCSE_cover_beta0.x,
+    avg_beta0.y, MCSE_bias_beta0.y, cover_beta0.y, MCSE_cover_beta0.y
+  )
+
+# Export to LaTeX table: Section 3.2
+summary_combined |>
+    mutate(
+      across(
+        c(avg_beta0.x, MCSE_bias_beta0.x, cover_beta0.x, MCSE_cover_beta0.x,
+          avg_beta0.y, MCSE_bias_beta0.y, cover_beta0.y, MCSE_cover_beta0.y),
+        ~ round(.x, 3)
+      )
+    ) |>
+  rowwise() |>
+  mutate(
+    avgMCSE_beta0_scen1 = paste0(avg_beta0.x, " (", MCSE_bias_beta0.x, ")"),
+    coverMCSE_beta0_scen1 = paste0(cover_beta0.x, " (", MCSE_cover_beta0.x, ")"),
+    avgMCSE_beta0_scen2 = paste0(avg_beta0.y, " (", MCSE_bias_beta0.y, ")"), 
+    coverMCSE_beta0_scen2 = paste0(cover_beta0.y, " (", MCSE_cover_beta0.y, ")")
+  ) |>
+  ungroup() |> 
+  select(m, everyth, avgMCSE_beta0_scen1, coverMCSE_beta0_scen1, avgMCSE_beta0_scen2, coverMCSE_beta0_scen2) |>
+  kbl(
+    format = "latex", 
+    booktabs = TRUE,
+    col.names = c("$m$", "Every", "Bias (MC-SE)", "Cover. (MC-SE)", "Bias (MC-SE)", "Cover. (MC-SE)")
+  )
+
+# Export to LaTeX table: Appendix
+summary_scenario2 |>
+  select(
+    m, everyth, 
+    phi_d, avg_phi, MCSE_bias_phi, cover_phi, 
+    avg_gamma, MCSE_bias_gamma, cover_gamma
+  ) |>
+    mutate(
+      across(
+        c(phi_d, avg_phi, MCSE_bias_phi, cover_phi, 
+          avg_gamma, MCSE_bias_gamma, cover_gamma),
+        ~ round(.x, 3)
+      )
+    ) |>
+  rowwise() |>
+  mutate(
+    avgMCSE_phi = paste0(avg_phi, " (", MCSE_bias_phi, ")"),
+    avgMCSE_gamma = paste0(avg_gamma, " (", MCSE_bias_gamma, ")")
+  ) |>
+  ungroup() |> 
+  select(m, everyth, phi_d, avgMCSE_phi, cover_phi, avgMCSE_gamma, cover_gamma) |>
+  kbl(
+    format = "latex", 
+    booktabs = TRUE,
+    col.names = c("$m$", "Every", "phi_d", "Avg. (MC-SE)", "Coverage", "Avg. (MC-SE)", "Coverage")
+  )
+
+# Visualize results
+plot_scenario2_hats_beta0 <- results_scenario2 |>
+  merge(summary_scenario2, by = c("m", "everyth")) |>
+  mutate(
+    m_annotated = factor(m, label = c("m = 1", "m = 2", "m = 3", "m = 5", "m = 10")),
+    everyth_annotated = factor(everyth, label = c("1st", "2nd", "3rd", "5th", "10th"))
+  ) |> 
+  ggplot(aes(x = hat_beta_Y_X, color = m)) + 
+  geom_density() + 
+  geom_segment(
+    mapping = aes(x = avg_beta0, xend = avg_beta0, y = 0.7, yend = 6),
+    linetype = 4,
+    linewidth = 1
+  ) +
+  geom_vline(xintercept = c(0.5), linetype = 3, linewidth = 1.5) + 
+  geom_text(
+    mapping = aes(x = avg_beta0, y = 0.5, label = round(avg_beta0, 2)),
+    color = "black", vjust = 1, hjust = 0.5, size = 4
+  ) + 
+  xlab(expression(hat(beta)[0])) + 
+  xlim(c(-0.6, 0.8)) +
+  facet_grid(vars(m_annotated), vars(everyth_annotated)) +
+  theme_classic() + 
+  theme(
+    legend.position = "none",
+    legend.title = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    text = element_text(size = 18)
+  )
+
+ggsave("./figures/plot_scenario2_hats_beta0.png", plot_scenario2_hats_beta0, width = 10, height = 10)
+```
+
+# Scenario 3
+
+```{r scenario3-parameters}
+# Parameters: Exposure (Markov chain)
+QTransProb <- compute_transProbs_logistic(
+  beta10_0 = -2, beta10_1 = 0, beta10_2 = 0, 
+  beta01_0 = 0, beta01_1 = 0, beta01_2 = 0, 
+  Y = 0, L = 0
+)
+QTransProb
+
+beta0 <- matrix(c(.5), ncol = 1)
+phi <- matrix(c(.5), ncol = 1)
+
+# Simulation factors
+sample_size <- 500
+burnin <- 200
+n_replications <- 1000
+k_time_points <- 5
+```
+
+
+```{r scenario3}
+# Create data frame with experimental conditions
+conditions_scenario3 <- data.frame(
+  m = c(1, 7, 30, 365, 7), 
+  everyth = c(1, 4, 12, 1, 102)
+) %>%
+  mutate(n_time_points = m * everyth * k_time_points)
+
+# Convert data frame to list of lists and add `datasets` element
+conditions_scenario3 <- conditions_scenario3 %>%
+  split(seq(nrow(.))) %>%
+  map(~ {
+    inner_list <- as.list(.x)
+    inner_list$datasets <- vector("list", n_replications) # Create empty list for datasets
+    inner_list$fits <- vector("list", n_replications) # Create empty list for model fits
+    inner_list
+  })
+ 
+set.seed(123456)
+
+# Create datasets per experimental condition
+conditions_scenario3 <- map(
+  .x = conditions_scenario3,
+  .f = function(condition) {
+    condition$datasets <- map(
+      .x = 1:n_replications,
+      .f = function(df) {
+        dat <-  generate_data_V3(
+          sample_size = sample_size, 
+          n_time_points = condition$n_time_points, 
+          m = condition$m,
+          everyth_frame = condition$everyth,
+          burnin = 200,
+          phi = phi, # Autoregressive parameter
+          beta0 = matrix(c(0.5), nrow = 1), # Effect time-dependent predictor X
+          sigma2Eta = matrix(c(1)), 
+          sigma2L = matrix(c(1)),
+          lambda = c(1), 
+          tau = 0, 
+          thetaY = 0, 
+          beta10_0 = -2,
+          beta10_1 = -0.5,
+          beta10_2 = 1,
+          beta01_0 = 0,
+          beta01_1 = 1, 
+          beta01_2 = 1,
+          gamma = 0.8,
+          alpha = 0.5, 
+          preprocess = TRUE
+        ) |>
+          rename(XAggr = X_aggr, YAggr = Y_aggr, LAggr = L_aggr) |> 
+          pivot_wider(
+          names_from = frame,
+          values_from = c("XAggr", "LAggr", "YAggr"),
+          names_sep = "_"
+        )
+      }
+    )
+    return(condition)
+  }
+)
+
+# Wide-ARX(1)
+model_ARX <- "
+  # Regressions
+  YAggr_2 ~ beta_Y_X*XAggr_2 + beta_Y_L*LAggr_2 + beta_Y_Lag1Y*YAggr_1 
+  YAggr_3 ~ beta_Y_X*XAggr_3 + beta_Y_L*LAggr_3 + beta_Y_Lag1Y*YAggr_2 
+  YAggr_4 ~ beta_Y_X*XAggr_4 + beta_Y_L*LAggr_4 + beta_Y_Lag1Y*YAggr_3 
+  YAggr_5 ~ beta_Y_X*XAggr_5 + beta_Y_L*LAggr_5 + beta_Y_Lag1Y*YAggr_4 
+  
+  # Residual variances
+  YAggr_2 ~~ YAggr_2
+  YAggr_3 ~~ YAggr_3
+  YAggr_4 ~~ YAggr_4
+  YAggr_5 ~~ YAggr_5
+  
+  # Variances
+  YAggr_1 ~~ YAggr_1
+  
+  XAggr_1 ~~ XAggr_1
+  XAggr_2 ~~ XAggr_2
+  XAggr_3 ~~ XAggr_3
+  XAggr_4 ~~ XAggr_4
+  XAggr_5 ~~ XAggr_5
+  
+  LAggr_1 ~~ LAggr_1
+  LAggr_2 ~~ LAggr_2
+  LAggr_3 ~~ LAggr_3
+  LAggr_4 ~~ LAggr_4
+  LAggr_5 ~~ LAggr_5
+  
+  # Covariances
+  XAggr_1 ~~ XAggr_2 + XAggr_3 + XAggr_4 + XAggr_5 + 
+              LAggr_1 + LAggr_2 + LAggr_3 + LAggr_4 + LAggr_5 + 
+              YAggr_1
+  XAggr_2 ~~ XAggr_3 + XAggr_4 + XAggr_5 + 
+               LAggr_1 + LAggr_2 + LAggr_3 + LAggr_4 + LAggr_5 
+  XAggr_3 ~~ XAggr_4 + XAggr_5 + 
+               LAggr_1 + LAggr_2 + LAggr_3 + LAggr_4 + LAggr_5 
+  XAggr_4 ~~ XAggr_5 + 
+               LAggr_1 + LAggr_2 + LAggr_3 + LAggr_4 + LAggr_5 
+  XAggr_5 ~~ LAggr_1 + LAggr_2 + LAggr_3 + LAggr_4 + LAggr_5 
+  
+  LAggr_1 ~~ LAggr_2 + LAggr_3 + LAggr_4 + LAggr_5 + YAggr_1
+  LAggr_2 ~~ LAggr_3 + LAggr_4 + LAggr_5
+  LAggr_3 ~~ LAggr_4 + LAggr_5
+  LAggr_4 ~~ LAggr_5
+"
+
+# Fit RI-CLPM to datasets using lavaan
+plan(multisession, workers = 4)
+conditions_scenario3 <- future_map(
+  .x = conditions_scenario3, 
+  .f = function(condition) {
+    condition$fits <- map(
+      .x = condition$datasets,
+      .f = function(df) {
+        fit <- lavaan(model = model_ARX, data = df, fixed.x = FALSE)
+        out <- parameterestimates(fit) |>
+          filter(grepl("^beta_", label)) |>
+          select(label, est, se)
+        return(out)
+      }
+    )
+    return(condition)
+  }
+)
+plan(sequential) 
+
+# Reorganize results
+results_scenario3 <- map(
+  .x = conditions_scenario3, 
+  .f = function(condition) {
+    condition$fits <- map(condition$fits, function(x) {x[1:3, ]})
+    condition$result <- list_rbind(condition$fits) |> 
+      mutate(m = as.factor(condition$m), everyth = as.factor(condition$everyth))
+    return(as.data.frame(condition$result))
+  }) |> 
+  list_rbind()
+
+# Summarize results
+summary_scenario3 <- results_scenario3 |> 
+  mutate(population_value = case_when(
+    label == "beta_Y_X" ~ 0.5, 
+    label == "beta_Y_L" ~ 0.8, 
+    label == "beta_Y_Lag1Y" ~ 0.5
+  )) |>
+  rowwise() |> 
+  mutate(
+    lb = est - 1.96*se,
+    ub = est + 1.96*se, 
+    covered = lb < population_value && ub > population_value
+  ) |> 
+  group_by(m, everyth, label) |>
+  summarise(
+    avg = mean(est), 
+    bias = mean(est - population_value),
+    MCSE_bias = sqrt((1 / (n_replications * (n_replications - 1))) * sum((est - avg)^2)), 
+    sd = sd(est),
+    cover = sum(covered) / n_replications, 
+    MCSE_cover = sqrt( (cover * (1 - cover)) / n_replications )
+  )
+
+# Export to LaTeX table: Section 3.3
+summary_scenario3 |>
+    mutate(
+      across(
+        c(avg, bias, MCSE_bias, sd, cover, MCSE_cover),
+        ~ round(.x, 3)
+      )
+    ) |>
+  filter(label == "beta_Y_X") |>
+  rowwise() |>
+  mutate ( 
+    avgMCSE_beta0 = paste0(avg, " (", MCSE_bias, ")"),
+    coverMCSE_beta0 = paste0(cover, " (", MCSE_cover, ")")
+  ) |>
+  ungroup() |> 
+  select(m, everyth, avgMCSE_beta0, coverMCSE_beta0) |>
+  kbl(
+    format = "latex", 
+    booktabs = TRUE,
+    col.names = c("$m$", "Every", "Avg. (MC-SE)", "Cover. (MC-SE)")
+  )
+
+# Export to LaTeX table: Section 3.3
+summary_scenario3 |>
+    mutate(
+      across(
+        c(avg, bias, MCSE_bias, sd, cover, MCSE_cover),
+        ~ round(.x, 3)
+      )
+    ) |>
+  filter(label == "beta_Y_Y" || label == "beta_Y_L") |>
+  rowwise() |>
+  mutate ( 
+    avgMCSE_phi = paste0(avg, " (", MCSE_bias, ")"),
+    coverMCSE_phi = paste0(cover, " (", MCSE_cover, ")"),
+    avgMCSE_gamma = paste0(avg, " (", MCSE_bias, ")"),
+    coverMCSE_gamma = paste0(cover, " (", MCSE_cover, ")")
+  ) |>
+  ungroup() |> 
+  select(m, everyth, avgMCSE_beta0, coverMCSE_beta0) |>
+  kbl(
+    format = "latex", 
+    booktabs = TRUE,
+    col.names = c("$m$", "Every", "Avg. (MC-SE)", "Cover. (MC-SE)")
+  )
+
+```
+
+

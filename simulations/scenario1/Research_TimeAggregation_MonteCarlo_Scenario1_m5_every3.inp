@@ -1,0 +1,31 @@
+TITLE: 
+    Mulder, Voelkle, and Hamaker (working)
+    Monte Carlo analysis of time-aggregated single-subject data
+    with ARX(1) model.
+    Aggregation of m = 5 periods, analyzing every 3rd observation.
+
+DATA:
+    FILE = dfList_m5_every3.dat;
+    TYPE = MONTECARLO;
+
+VARIABLE: 
+    NAMES = XAggr LAggr YAggr
+            frame unit;
+    USEVARIABLES = XAggr YAggr;
+    LAGGED = YAggr(1);
+
+ANALYSIS: 
+    ESTIMATOR = BAYES;
+    PROCESSOR = 4;
+    BITERATION = (1000);
+
+MODEL: 
+   YAggr ON 0.5*YAggr&1 0.5*XAggr; 
+
+SAVEDATA:
+    RESULTS = results_m5_every3.dat;
+
+
+
+
+

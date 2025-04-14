@@ -1,0 +1,31 @@
+TITLE: 
+    Mulder, Voelkle, and Hamaker (working)
+    Population model - Bivariate VAR(1) with Markov chain X and continuous Y
+    Estimation model - ARX(1) model (with covariate adjustment)
+    No aggregation, analyzing every 3rd observation.
+
+DATA:
+    FILE = dfList_m1_every3.dat;
+    TYPE = MONTECARLO;
+
+VARIABLE: 
+    NAMES = X L Y frame unit; 
+    USEVARIABLES = X L Y;
+    LAGGED = Y(1);
+   
+ANALYSIS: 
+    ESTIMATOR = BAYES;
+    PROCESSOR = 4;
+    BITERATION = (1000);
+
+MODEL: 
+    Y ON 0.5*Y&1 0.5*X 0.8*L;
+
+SAVEDATA:
+    RESULTS = results_m1_every3.dat;
+
+
+
+
+
+

@@ -1,0 +1,29 @@
+TITLE: 
+    Mulder, Voelkle, and Hamaker (working)
+    Monte Carlo analysis of time-aggregated single-subject data
+    with ARX(1) model.
+
+DATA:
+    FILE = dfList_m1_every1.dat;
+    TYPE = MONTECARLO;
+
+VARIABLE: 
+    NAMES = X L Y frame unit; 
+    USEVARIABLES = X Y;
+    LAGGED = Y(1);
+
+ANALYSIS: 
+    ESTIMATOR = BAYES;
+    PROCESSOR = 4;
+    BITERATION = (1000);
+
+MODEL: 
+    Y ON 0.5*Y&1 0.5*X;
+
+SAVEDATA:
+    RESULTS = results_m1_every1.dat;
+
+
+
+
+

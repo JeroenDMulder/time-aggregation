@@ -1,0 +1,31 @@
+TITLE: 
+    Mulder, Voelkle, and Hamaker (working)
+    Population model - Bivariate VAR(1) with Markov chain X and continuous Y
+    Estimation model - ARX(1) model (with covariate adjustment)
+    Aggregation of m = 2 periods, analyzing every 10th observation.
+
+DATA:
+    FILE = dfList_m2_every10.dat;
+    TYPE = MONTECARLO;
+
+VARIABLE: 
+    NAMES = XAggr LAggr YAggr frame unit;
+    USEVARIABLES = XAggr LAggr YAggr;
+    LAGGED = YAggr(1);
+   
+ANALYSIS: 
+    ESTIMATOR = BAYES;
+    PROCESSOR = 4;
+    BITERATION = (1000);
+
+MODEL: 
+    YAggr ON 0.5*YAggr&1 0.5*XAggr 0.8*LAggr;
+
+SAVEDATA:
+    RESULTS = results_m2_every10.dat;
+
+
+
+
+
+

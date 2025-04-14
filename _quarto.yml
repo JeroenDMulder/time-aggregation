@@ -1,0 +1,15 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - index.qmd
+    - "!R/"
+
+website: 
+  title: "Mulder, Luijken et al. (2024)"
+  description: "Online Supplementary Materials of Mulder, Luijken, Penning de Vries and Hamaker (2024)."
+  site-url: "https://jeroendmulder.github.io/SEM-and-MSM"
+  repo-url: https://github.com/JeroenDMulder/SEM-and-MSM
+  open-graph: true
+
+

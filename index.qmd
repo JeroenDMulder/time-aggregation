@@ -1,0 +1,126 @@
+---
+title: "Online Supplementary Materials of Mulder, Voelkle, and Hamaker (under review)"
+subtitle: '"Time Aggregation and Missing Time Frames in Causal Research With Panel Data"'
+author: 
+  - name: Jeroen D. Mulder
+    url: https://orcid.org/0000-0002-5553-0856
+    affiliation: Utrecht University
+    affiliation_url: https://www.uu.nl/staff/jdmulder
+    orcid_id: 0000-0002-5553-0856
+format: 
+  html:
+    grid:
+      margin-width: 350px
+toc: true
+toc-location: left
+reference-location: margin
+citation-location: document
+output_dir: "docs"
+bibliography: references.bib
+---
+
+```{r preamble, echo=FALSE, warning=FALSE}
+library(magrittr)
+library(kableExtra)
+```
+
+This website is the online supplementary materials of @mulder_time_noDate. It contains the R code and Mplus syntax for the simulation study and its complete numerical results.
+
+# Simulation Study
+For the simulation study, data were generated in R and C++ using the R packages Rcpp [@eddelbuettel_rcpp_2011] and RcppArmadillo [@eddelbuettel_rcpparmadillo_2014]. Analyses of the generated data were performed using Mplus version 8.11 [@muthen_mplus_2017] for Scenarios 1 and 2 and using the R package lavaan [@rosseel_lavaan_2012] for Scenario 3. 
+
+&nbsp;&nbsp;&nbsp;&nbsp;🔗 [Click here to download the R and C++ code for the simulation study](https://github.com/JeroenDMulder/time-aggregation/blob/main/R and C++).
+
+&nbsp;&nbsp;&nbsp;&nbsp;🔗 [Click here to download the Mplus input files for the simulation study](https://github.com/JeroenDMulder/time-aggregation/tree/main/simulations).
+
+The bias and 95% confidence interval coverage rate for all estimated regression parameters across all three scenarios can be found in the tabs below.
+
+```{r simulation-conditions, echo=FALSE, message=FALSE}
+load("./R and C++/20250127_Research_TimeAggregation_Workspace.RData")
+```
+
+### Scenario 1
+
+```{r results-scenario1, echo=FALSE, message=FALSE}
+summary_scenario1 %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate_if(is.numeric, ~round(., 3)) %>%
+  dplyr::mutate(
+    CI95_avg_beta0 = paste0("[", round(avg_beta0 - 1.96*MCSE_bias_beta0, 3), " - ", round(avg_beta0 + 1.96*MCSE_bias_beta0, 3), "]"), 
+    CI95_avg_phi = paste0("[", round(avg_phi - 1.96*MCSE_bias_phi, 3), " - ", round(avg_phi + 1.96*MCSE_bias_phi, 3), "]")
+  )|> 
+  dplyr::select(m, everyth, avg_beta0, CI95_avg_beta0, sd_beta0, coverage_beta0, avg_phi, CI95_avg_phi) |> 
+  knitr::kable(
+    col.names = c("m", "Every", "Avg.", "95% MC-CI", "SD", "Coverage", "Avg.", "95% MC-CI"),
+    rownames = FALSE, 
+    align = "cccccccc", 
+    caption = "Average estimate and 95% Monte Carlo confidence interval (MC-CI) around the average for estimates of the lag-0 effect \u03B2 and autoregressive effect \u03C6 across experimental conditions in Scenario 1. For \u03B2 we additionally report the standard error SD as well as the 95% coverage rage (Coverage)."
+  ) |>
+  kableExtra::add_header_above(
+    header = c(" " = 2, "\u03B2" = 4, "\u03C6" = 2), 
+    escape = FALSE
+  ) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) |> 
+  column_spec(c(4, 8), extra_css = "white-space: nowrap;") |> 
+  kableExtra::scroll_box(width = "100%", height = "600px") 
+```
+
+### Scenario 2
+
+```{r results-scenario2, echo=FALSE, message=FALSE}
+summary_scenario2 %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate_if(is.numeric, ~round(., 3)) %>%
+  dplyr::mutate(
+    CI95_avg_beta0 = paste0("[", round(avg_beta0 - 1.96*MCSE_bias_beta0, 3), " - ", round(avg_beta0 + 1.96*MCSE_bias_beta0, 3), "]"), 
+    CI95_avg_phi = paste0("[", round(avg_phi - 1.96*MCSE_bias_phi, 3), " - ", round(avg_phi + 1.96*MCSE_bias_phi, 3), "]"), 
+    CI95_avg_gamma = paste0("[", round(avg_gamma - 1.96*MCSE_bias_gamma, 3), " - ", round(avg_gamma + 1.96*MCSE_bias_gamma, 3), "]")
+  )|> 
+  dplyr::select(m, everyth, avg_beta0, CI95_avg_beta0, sd_beta0, coverage_beta0, avg_phi, CI95_avg_phi, avg_gamma, CI95_avg_gamma) |> 
+  knitr::kable(
+    col.names = c("m", "Every", "Avg.", "95% MC-CI", "SD", "Coverage", "Avg.", "95% MC-CI", "Avg.", "95% MC-CI"),
+    rownames = FALSE, 
+    align = "cccccccccc", 
+    caption = "Average estimate and 95% Monte Carlo confidence interval (MC-CI) around the average for estimates of the lag-0 effect \u03B2, autoregressive effect \u03C6, and covariate effect \u03B3 across experimental conditions in Scenario 2. For $\u03B2$ we additionally report the standard error SD as well as the 95% coverage rage (Coverage)."
+  ) |>
+  kableExtra::add_header_above(
+    header = c(" " = 2, "\u03B2" = 4, "\u03C6" = 2, "\u03B3" = 2), 
+    escape = FALSE
+  ) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) |> 
+  column_spec(c(4, 8, 10), extra_css = "white-space: nowrap;") |> 
+  kableExtra::scroll_box(width = "100%", height = "600px") 
+```
+
+### Scenario 3
+
+```{r results-scenario3, echo=FALSE, message=FALSE}
+summary_scenario3 %>%
+  dplyr::ungroup() %>%
+  tidyr::pivot_wider(
+    names_from = label,
+    values_from = c(avg, bias, MCSE_bias, sd, coverage)
+  ) |> 
+  dplyr::mutate_if(is.numeric, ~round(., 3)) %>%
+  dplyr::mutate(
+    CI95_avg_beta0 = paste0("[", round(avg_beta_Y_X - 1.96*MCSE_bias_beta_Y_X, 3), " - ", round(avg_beta_Y_X + 1.96*MCSE_bias_beta_Y_X, 3), "]"), 
+    CI95_avg_phi = paste0("[", round(avg_beta_Y_Lag1Y - 1.96*MCSE_bias_beta_Y_Lag1Y, 3), " - ", round(avg_beta_Y_Lag1Y + 1.96*MCSE_bias_beta_Y_Lag1Y, 3), "]"), 
+    CI95_avg_gamma = paste0("[", round(avg_beta_Y_L - 1.96*MCSE_bias_beta_Y_L, 3), " - ", round(avg_beta_Y_L + 1.96*MCSE_bias_beta_Y_L, 3), "]")
+  )|> 
+  dplyr::select(m, everyth, avg_beta_Y_X, CI95_avg_beta0, sd_beta_Y_X, coverage_beta_Y_X, avg_beta_Y_Lag1Y, CI95_avg_phi, avg_beta_Y_L, CI95_avg_gamma) |> 
+  knitr::kable(
+    col.names = c("m", "Every", "Avg.", "95% MC-CI", "SD", "Coverage", "Avg.", "95% MC-CI", "Avg.", "95% MC-CI"),
+    rownames = FALSE, 
+    align = "cccccccccc", 
+    caption = "Average estimate and 95% Monte Carlo confidence interval (MC-CI) around the average for estimates of the lag-0 effect \u03B2, autoregressive effect \u03C6, and covariate effect \u03B3 across experimental conditions in Scenario 3. For \u03B2 we additionally report the standard error SD as well as the 95% coverage rage (Coverage)."
+  ) |>
+  kableExtra::add_header_above(
+    header = c(" " = 2, "\u03B2" = 4, "\u03C6" = 2, "\u03B3" = 2), 
+    escape = FALSE
+  ) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) |> 
+  column_spec(c(4, 8, 10), extra_css = "white-space: nowrap;") |> 
+  kableExtra::scroll_box(width = "100%", height = "300px") 
+```
+
+
